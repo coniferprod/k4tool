@@ -14,11 +14,36 @@ const (
 	numDrums   = 682
 	numEffects = 32
 
+	headerSize = 8
+
 	singleDataSize = 131
 	multiDataSize  = 77
 	drumDataSize   = 682
 	effectDataSize = 35
+
+	numSources = 4
+
+	singleDataStart = headerSize
+	multiDataStart  = singleDataStart + 64*singleDataSize
+	drumDataStart   = multiDataStart + 64*multiDataSize
+	effectDataStart = drumDataStart + 682
+	eoxStart        = effectDataStart + 32*effectDataSize
 )
+
+type SingleCommon struct {
+	Name string // 10 ASCII characters
+
+}
+
+type SingleSource struct {
+	Delay int
+	Wave  int
+}
+
+type Single struct {
+	Common  SingleCommon
+	Sources [numSources]SingleSource
+}
 
 func main() {
 	fmt.Println("Hello, Kawai K4!")
@@ -69,4 +94,22 @@ func main() {
 	fmt.Printf("function = %xh, group = %d, machine = %d, sub status1 = %d, sub status2 = %d\n",
 		function, group, machine, subStatus1, subStatus2)
 
+	fmt.Println("Data offsets:")
+	fmt.Printf("Single data = %04X\n", singleDataStart)
+	fmt.Printf("Multi data = %04X\n", multiDataStart)
+	fmt.Printf("Drum data = %04X\n", drumDataStart)
+	fmt.Printf("Effect data = %04X\n", effectDataStart)
+	fmt.Printf("EOX = %04X\n", eoxStart)
+
+	listSinglePatches(data[singleDataStart:multiDataStart])
+
+}
+
+func listSinglePatches(d []byte) {
+	offset := 0
+	for i := 0; i < numSingles; i++ {
+		name := d[offset : offset+10]
+		fmt.Printf("%s\n", name)
+		offset += singleDataSize
+	}
 }
