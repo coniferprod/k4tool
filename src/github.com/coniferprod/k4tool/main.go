@@ -8,6 +8,18 @@ import (
 	"os"
 )
 
+const (
+	numSingles = 64
+	numMultis  = 64
+	numDrums   = 682
+	numEffects = 32
+
+	singleDataSize = 131
+	multiDataSize  = 77
+	drumDataSize   = 682
+	effectDataSize = 35
+)
+
 func main() {
 	fmt.Println("Hello, Kawai K4!")
 
