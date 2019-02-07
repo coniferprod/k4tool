@@ -108,8 +108,10 @@ func main() {
 func listSinglePatches(d []byte) {
 	offset := 0
 	for i := 0; i < numSingles; i++ {
+		bankLetter := string("ABCD"[i/16])
+		patchNumber := (i % 16) + 1
 		name := d[offset : offset+10]
-		fmt.Printf("%s\n", name)
+		fmt.Printf("%s-%-2d %s\n", bankLetter, patchNumber, name)
 		offset += singleDataSize
 	}
 }
