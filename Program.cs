@@ -86,6 +86,12 @@ namespace k4tool
                 }
             }
 
+            // For debugging: dump the wave list
+            for (int i = 0; i < Wave.NumWaves; i++)
+            {
+                System.Console.WriteLine(String.Format("{0,3} {1}", i + 1, Wave.Instance[i]));
+            }
+
             return 0;
         }
     }
