@@ -1,3 +1,6 @@
+using System;
+using System.Text;
+
 namespace k4tool
 {
     public class Single
@@ -10,7 +13,7 @@ namespace k4tool
             Solo2
         };
 
-        public class Common
+        public class CommonSettings
         {
             public string Name;
             
@@ -46,13 +49,13 @@ namespace k4tool
 
             public int PressureFreq; // 0~100 (±50)
 
-            public Common()
+            public CommonSettings()
             {
 
             }            
         }
 
-        private Common CommonParams;
+        private CommonSettings Common;
 
         const int NumSources = 4;
 
@@ -62,6 +65,28 @@ namespace k4tool
         {
             Sources = new Source[NumSources];
             
+        }
+
+        public Single(byte[] data)
+        {
+            int offset = 0;
+            byte b = 0;  // will be reused when getting the next byte
+
+            Common.Name = GetName(data, offset);
+        }
+
+        private string GetName(byte[] data, int offset)
+        {
+            // Brute-force the name in s0 ... s9
+            byte[] bytes = { data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9] };
+        	return Encoding.ASCII.GetString(bytes);
+        }
+
+        public override string ToString()
+        {
+            StringBuilder builder = new StringBuilder();
+            builder.Append(String.Format("*SINGLE* {0}\n\n", Common.Name));
+            return builder.ToString();
         }
 
     }

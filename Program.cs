@@ -67,9 +67,11 @@ namespace k4tool
 
                 // Extract the patch bytes (discarding the SysEx header)
                 int dataLength = message.Length - SystemExclusiveHeaderLength;
-                byte[] rawData = new byte[dataLength];
-                Array.Copy(message, SystemExclusiveHeaderLength, rawData, 0, dataLength);
+                byte[] data = new byte[dataLength];
+                Array.Copy(message, SystemExclusiveHeaderLength, data, 0, dataLength);
 
+                Single s = new Single(data);
+                
                 if (header.Function != 0x22)
                 {
                     System.Console.WriteLine($"This is not an all patch data dump: {header.ToString()}");
@@ -87,10 +89,10 @@ namespace k4tool
             }
 
             // For debugging: dump the wave list
-            for (int i = 0; i < Wave.NumWaves; i++)
-            {
-                System.Console.WriteLine(String.Format("{0,3} {1}", i + 1, Wave.Instance[i]));
-            }
+            //for (int i = 0; i < Wave.NumWaves; i++)
+            //{
+            //    System.Console.WriteLine(String.Format("{0,3} {1}", i + 1, Wave.Instance[i]));
+            //}
 
             return 0;
         }
