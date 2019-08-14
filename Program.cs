@@ -4,6 +4,23 @@ using System.Collections.Generic;
 
 namespace k4tool
 {
+    public enum SystemExclusiveFunction
+    {
+        OnePatchDumpRequest = 0x00,
+        BlockPatchDumpRequest = 0x01,
+        AllPatchDumpRequest = 0x02,
+        ParameterSend = 0x10,
+        OnePatchDataDump = 0x20,
+        BlockPatchDataDump = 0x21,
+        AllPatchDataDump = 0x22,
+        EditBufferDump = 0x23,
+        ProgramChange = 0x30,
+        WriteComplete = 0x40,
+        WriteError = 0x41,
+        WriteErrorProtect = 0x42,
+        WriteErrorNoCard = 0x43
+    }
+
     public struct SystemExclusiveHeader
     {
         public byte ManufacturerID;
@@ -38,6 +55,11 @@ namespace k4tool
             return header;
         }
 
+        public const int SinglePatchCount = 64;  // banks A, B, C and D with 16 patches each
+        public const int MultiPatchCount = 64;   // same as single
+
+        public const int SingleDataSize = 131;
+
         static int Main(string[] args)
         {
             if (args.Length < 2)
@@ -67,24 +89,30 @@ namespace k4tool
 
                 // Extract the patch bytes (discarding the SysEx header)
                 int dataLength = message.Length - SystemExclusiveHeaderLength;
+                System.Console.WriteLine($"data length = {dataLength}");
                 byte[] data = new byte[dataLength];
                 Array.Copy(message, SystemExclusiveHeaderLength, data, 0, dataLength);
 
-                Single s = new Single(data);
-                
-                if (header.Function != 0x22)
+                SystemExclusiveFunction function = (SystemExclusiveFunction)header.Function;
+                if (function != SystemExclusiveFunction.AllPatchDataDump)
                 {
                     System.Console.WriteLine($"This is not an all patch data dump: {header.ToString()}");
                     // See section 5-11 in the Kawai K4 MIDI implementation manual
-                }
-                else
-                {
-                    System.Console.WriteLine($"{header.ToString()}");
+
+                    break;
                 }
 
                 if (command.Equals("list"))
                 {
-                    System.Console.WriteLine("list");
+                    // TODO: Split the data into chunks representing single, multi, drum, and effect data
+                    for (int i = 0; i < SinglePatchCount; i++)
+                    {
+                        byte[] singleData = new byte[SingleDataSize];
+                        Buffer.BlockCopy(data, i * SingleDataSize, singleData, 0, SingleDataSize);
+                        Single single = new Single(singleData);
+                        string name = GetPatchName(i);
+                        System.Console.WriteLine($"SINGLE {name} - {single.ToString()}");
+                    }                
                 }
             }
 
@@ -95,6 +123,15 @@ namespace k4tool
             //}
 
             return 0;
+        }
+
+        public static string GetPatchName(int p, int patchCount = 16)
+        {
+        	int bankIndex = p / patchCount;
+	        char bankLetter = "ABCD"[bankIndex];
+	        int patchIndex = (p % patchCount) + 1;
+
+	        return String.Format("{0}-{1,2}", bankLetter, patchIndex);
         }
     }
 }

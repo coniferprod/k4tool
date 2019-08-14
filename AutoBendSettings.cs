@@ -1,3 +1,6 @@
+using System;
+using System.Text;
+
 namespace k4tool
 {
     public class AutoBendSettings
@@ -9,5 +12,12 @@ namespace k4tool
         public int KeyScalingTime; // 0~100 (±50)
 
         public int VelocityDepth; // 0~100 (±50)
+
+        public override string ToString()
+        {
+            StringBuilder builder = new StringBuilder();
+            builder.Append(String.Format("time = {0}, depth = {1}, ks>time = {2}, vel>dep = {3}", Time, Depth - 50, KeyScalingTime - 50, VelocityDepth - 50));
+            return builder.ToString();
+        }
     }
 }
