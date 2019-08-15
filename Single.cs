@@ -78,7 +78,8 @@ namespace k4tool
 
             Common.Name = GetName(data, offset);
             offset += 10;  // name is s00 to s09
-            (Common.Volume, offset) = Util.GetNextByte(data, offset);
+            (b, offset) = Util.GetNextByte(data, offset);
+            Common.Volume = b;
 
             // effect = s11 bits 0...4
             (b, offset) = Util.GetNextByte(data, offset);
@@ -130,6 +131,12 @@ namespace k4tool
             Common.AutoBend.VelocityDepth = b & 0x7f;
 
             (b, offset) = Util.GetNextByte(data, offset);
+            Common.Vibrato.Pressure = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Common.Vibrato.Depth = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
             Common.LFO.Shape = (LFOShape)(b & 0x03);
 
             (b, offset) = Util.GetNextByte(data, offset);
@@ -146,6 +153,8 @@ namespace k4tool
 
             (b, offset) = Util.GetNextByte(data, offset);
             Common.PressureFreq = b & 0x7f;
+
+            System.Console.WriteLine(String.Format("sanity check: before sources, offset should be {0}, is {1}", 30, offset));
 
             //
             // Source data
@@ -206,6 +215,8 @@ namespace k4tool
                 Sources[i].VibratoSwitch = b.IsBitSet(1);
                 Sources[i].VelocityCurve = ((b >> 2) & 0x07);
             }
+
+            System.Console.WriteLine(String.Format("sanity check: before DCA, offset should be {0}, is {1}", 58, offset));
 
             // DCA
             (b, offset) = Util.GetNextByte(data, offset);
@@ -309,6 +320,8 @@ namespace k4tool
             Sources[2].Amp.TimeModulationKeyScaling = b & 0x7f;
             (b, offset) = Util.GetNextByte(data, offset);
             Sources[3].Amp.TimeModulationKeyScaling = b & 0x7f;
+
+            System.Console.WriteLine(String.Format("sanity check: before DCF, offset should be {0}, is {1}", 102, offset));
         }
 
         private string GetName(byte[] data, int offset)

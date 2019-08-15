@@ -23,8 +23,9 @@ namespace k4tool
         public override string ToString()
         {
             StringBuilder builder = new StringBuilder();
-            builder.Append(String.Format("shape = {0}, speed = {1}", Enum.GetNames(typeof(LFOShape))[(int)Shape], Speed));
-
+            builder.Append(String.Format("shape = {0}, speed = {1}, pressure = {2}, depth = {3}", 
+                Enum.GetNames(typeof(LFOShape))[(int)Shape], 
+                Speed, Pressure - 50, Depth - 50));
             return builder.ToString();
         }
     }
