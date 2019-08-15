@@ -273,58 +273,58 @@ namespace k4tool
             Sources[3].Amp.Env.Release = b & 0x7f;
 
             (b, offset) = Util.GetNextByte(data, offset);
-            Sources[0].Amp.LevelModulationVelocity = b & 0x7f;
+            Sources[0].Amp.LevelMod.VelocityDepth = b & 0x7f;
             (b, offset) = Util.GetNextByte(data, offset);
-            Sources[1].Amp.LevelModulationVelocity = b & 0x7f;
+            Sources[1].Amp.LevelMod.VelocityDepth = b & 0x7f;
             (b, offset) = Util.GetNextByte(data, offset);
-            Sources[2].Amp.LevelModulationVelocity = b & 0x7f;
+            Sources[2].Amp.LevelMod.VelocityDepth = b & 0x7f;
             (b, offset) = Util.GetNextByte(data, offset);
-            Sources[3].Amp.LevelModulationVelocity = b & 0x7f;
+            Sources[3].Amp.LevelMod.VelocityDepth = b & 0x7f;
 
             (b, offset) = Util.GetNextByte(data, offset);
-            Sources[0].Amp.LevelModulationPressure = b & 0x7f;
+            Sources[0].Amp.LevelMod.PressureDepth = b & 0x7f;
             (b, offset) = Util.GetNextByte(data, offset);
-            Sources[1].Amp.LevelModulationPressure = b & 0x7f;
+            Sources[1].Amp.LevelMod.PressureDepth = b & 0x7f;
             (b, offset) = Util.GetNextByte(data, offset);
-            Sources[2].Amp.LevelModulationPressure = b & 0x7f;
+            Sources[2].Amp.LevelMod.PressureDepth = b & 0x7f;
             (b, offset) = Util.GetNextByte(data, offset);
-            Sources[3].Amp.LevelModulationPressure = b & 0x7f;
+            Sources[3].Amp.LevelMod.PressureDepth = b & 0x7f;
 
             (b, offset) = Util.GetNextByte(data, offset);
-            Sources[0].Amp.LevelModulationKeyScaling = b & 0x7f;
+            Sources[0].Amp.LevelMod.KeyScalingDepth = b & 0x7f;
             (b, offset) = Util.GetNextByte(data, offset);
-            Sources[1].Amp.LevelModulationKeyScaling = b & 0x7f;
+            Sources[1].Amp.LevelMod.KeyScalingDepth = b & 0x7f;
             (b, offset) = Util.GetNextByte(data, offset);
-            Sources[2].Amp.LevelModulationKeyScaling = b & 0x7f;
+            Sources[2].Amp.LevelMod.KeyScalingDepth = b & 0x7f;
             (b, offset) = Util.GetNextByte(data, offset);
-            Sources[3].Amp.LevelModulationKeyScaling = b & 0x7f;
+            Sources[3].Amp.LevelMod.KeyScalingDepth = b & 0x7f;
 
             (b, offset) = Util.GetNextByte(data, offset);
-            Sources[0].Amp.TimeModulationOnVelocity = b & 0x7f;
+            Sources[0].Amp.TimeMod.AttackVelocity = b & 0x7f;
             (b, offset) = Util.GetNextByte(data, offset);
-            Sources[1].Amp.TimeModulationOnVelocity = b & 0x7f;
+            Sources[1].Amp.TimeMod.AttackVelocity = b & 0x7f;
             (b, offset) = Util.GetNextByte(data, offset);
-            Sources[2].Amp.TimeModulationOnVelocity = b & 0x7f;
+            Sources[2].Amp.TimeMod.AttackVelocity = b & 0x7f;
             (b, offset) = Util.GetNextByte(data, offset);
-            Sources[3].Amp.TimeModulationOnVelocity = b & 0x7f;
+            Sources[3].Amp.TimeMod.AttackVelocity = b & 0x7f;
 
             (b, offset) = Util.GetNextByte(data, offset);
-            Sources[0].Amp.TimeModulationOffVelocity = b & 0x7f;
+            Sources[0].Amp.TimeMod.ReleaseVelocity = b & 0x7f;
             (b, offset) = Util.GetNextByte(data, offset);
-            Sources[1].Amp.TimeModulationOffVelocity = b & 0x7f;
+            Sources[1].Amp.TimeMod.ReleaseVelocity = b & 0x7f;
             (b, offset) = Util.GetNextByte(data, offset);
-            Sources[2].Amp.TimeModulationOffVelocity = b & 0x7f;
+            Sources[2].Amp.TimeMod.ReleaseVelocity = b & 0x7f;
             (b, offset) = Util.GetNextByte(data, offset);
-            Sources[3].Amp.TimeModulationOffVelocity = b & 0x7f;
+            Sources[3].Amp.TimeMod.ReleaseVelocity = b & 0x7f;
 
             (b, offset) = Util.GetNextByte(data, offset);
-            Sources[0].Amp.TimeModulationKeyScaling = b & 0x7f;
+            Sources[0].Amp.TimeMod.KeyScaling = b & 0x7f;
             (b, offset) = Util.GetNextByte(data, offset);
-            Sources[1].Amp.TimeModulationKeyScaling = b & 0x7f;
+            Sources[1].Amp.TimeMod.KeyScaling = b & 0x7f;
             (b, offset) = Util.GetNextByte(data, offset);
-            Sources[2].Amp.TimeModulationKeyScaling = b & 0x7f;
+            Sources[2].Amp.TimeMod.KeyScaling = b & 0x7f;
             (b, offset) = Util.GetNextByte(data, offset);
-            Sources[3].Amp.TimeModulationKeyScaling = b & 0x7f;
+            Sources[3].Amp.TimeMod.KeyScaling = b & 0x7f;
 
             System.Console.WriteLine(String.Format("sanity check: before DCF, offset should be {0}, is {1}", 102, offset));
 
@@ -346,22 +346,22 @@ namespace k4tool
             Filter2.IsLFO = b.IsBitSet(3);
 
             (b, offset) = Util.GetNextByte(data, offset);
-            Filter1.CutoffModVel = b & 0x7f;
+            Filter1.CutoffMod.VelocityDepth = b & 0x7f;
 
             (b, offset) = Util.GetNextByte(data, offset);
-            Filter2.CutoffModVel = b & 0x7f;
+            Filter2.CutoffMod.VelocityDepth = b & 0x7f;
 
             (b, offset) = Util.GetNextByte(data, offset);
-            Filter1.CutoffModPrs = b & 0x7f;
+            Filter1.CutoffMod.PressureDepth = b & 0x7f;
 
             (b, offset) = Util.GetNextByte(data, offset);
-            Filter2.CutoffModPrs = b & 0x7f;
+            Filter2.CutoffMod.PressureDepth = b & 0x7f;
 
             (b, offset) = Util.GetNextByte(data, offset);
-            Filter1.CutoffModKS = b & 0x7f;
+            Filter1.CutoffMod.KeyScalingDepth = b & 0x7f;
 
             (b, offset) = Util.GetNextByte(data, offset);
-            Filter2.CutoffModKS = b & 0x7f;
+            Filter2.CutoffMod.KeyScalingDepth = b & 0x7f;
 
             (b, offset) = Util.GetNextByte(data, offset);
             Filter1.EnvelopeDepth = b & 0x7f;
@@ -400,22 +400,22 @@ namespace k4tool
             Filter2.Env.Release = b & 0x7f;
             
             (b, offset) = Util.GetNextByte(data, offset);
-            Filter1.TimeModulationOnVelocity = b & 0x7f;
+            Filter1.TimeMod.AttackVelocity = b & 0x7f;
 
             (b, offset) = Util.GetNextByte(data, offset);
-            Filter2.TimeModulationOnVelocity = b & 0x7f;
+            Filter2.TimeMod.AttackVelocity = b & 0x7f;
 
             (b, offset) = Util.GetNextByte(data, offset);
-            Filter1.TimeModulationOffVelocity = b & 0x7f;
+            Filter1.TimeMod.ReleaseVelocity = b & 0x7f;
 
             (b, offset) = Util.GetNextByte(data, offset);
-            Filter2.TimeModulationOffVelocity = b & 0x7f;
+            Filter2.TimeMod.ReleaseVelocity = b & 0x7f;
 
             (b, offset) = Util.GetNextByte(data, offset);
-            Filter1.TimeModulationKeyScaling = b & 0x7f;
+            Filter1.TimeMod.KeyScaling = b & 0x7f;
 
             (b, offset) = Util.GetNextByte(data, offset);
-            Filter2.TimeModulationKeyScaling = b & 0x7f;
+            Filter2.TimeMod.KeyScaling = b & 0x7f;
 
             (b, offset) = Util.GetNextByte(data, offset);
             // "Check sum value (s130) is the sum of the A5H and s0 ~ s129".
@@ -467,7 +467,7 @@ namespace k4tool
                 builder.Append(String.Format("Source {0}:\n{1}", i + 1, Sources[i].ToString()));
             }
             builder.Append(String.Format("F1: {0}\n", Filter1.ToString()));
-            builder.Append(String.Format("F2: {0}\n", Filter1.ToString()));
+            builder.Append(String.Format("F2: {0}\n", Filter2.ToString()));
             return builder.ToString();
         }
 
