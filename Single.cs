@@ -146,6 +146,66 @@ namespace k4tool
 
             (b, offset) = Util.GetNextByte(data, offset);
             Common.PressureFreq = b & 0x7f;
+
+            //
+            // Source data
+            //
+            Sources = new Source[NumSources];
+            Sources[0] = new Source();
+            Sources[1] = new Source();
+            Sources[2] = new Source();
+            Sources[3] = new Source();
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[0].Delay = b & 0x7f;
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[1].Delay = b & 0x7f;
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[2].Delay = b & 0x7f;
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[3].Delay = b & 0x7f;
+
+            for (int i = 0; i < NumSources; i++)
+            {
+                int waveSelectHigh = 0;
+                int waveSelectLow = 0;
+                int keyScalingCurve = 0;
+
+                (b, offset) = Util.GetNextByte(data, offset);
+                waveSelectHigh = b & 0x01;
+                keyScalingCurve = ((b >> 4) & 0x07);
+
+                byte b2 = 0;
+                (b2, offset) = Util.GetNextByte(data, offset);
+                waveSelectLow = b2 & 0x7f;
+
+                // Combine the wave select bits:
+                string waveSelectBitString = String.Format("{0}{1}", Convert.ToString(waveSelectHigh, 2), Convert.ToString(waveSelectLow, 2));
+                Sources[i].WaveNumber = Convert.ToInt32(waveSelectBitString, 2);
+
+                Sources[i].KeyScalingCurve = ((b >> 4) & 0x07);  // 0 ~7 / 1 ~ 8
+            }
+
+            for (int i = 0; i < NumSources; i++)
+            {
+                (b, offset) = Util.GetNextByte(data, offset);
+                // Here the MIDI implementation's SysEx format is a little unclear.
+                // My interpretation is that the low six bits are the coarse value,
+                // and b6 is the key tracking bit (b7 is zero).
+                Sources[i].KeyTracking = b.IsBitSet(6);
+                Sources[i].Coarse = b & 0x3f;
+
+                (b, offset) = Util.GetNextByte(data, offset);
+                Sources[i].FixedKey = b & 0x7f;
+
+                (b, offset) = Util.GetNextByte(data, offset);
+                Sources[i].Fine = b & 0x7f;
+
+                (b, offset) = Util.GetNextByte(data, offset);
+                Sources[i].PressureToFrequencySwitch = b.IsBitSet(0);
+                Sources[i].VibratoSwitch = b.IsBitSet(1);
+                Sources[i].VelocityCurve = ((b >> 2) & 0x07);
+            }
         }
 
         private string GetName(byte[] data, int offset)
@@ -172,13 +232,17 @@ namespace k4tool
             builder.Append(String.Format("Source mode = {0}\n", Enum.GetNames(typeof(SourceMode))[(int)Common.SourceMode]));
             builder.Append(String.Format("Polyphony mode = {0}\n", Enum.GetNames(typeof(PolyphonyMode))[(int)Common.PolyphonyMode]));
             builder.Append(String.Format("AM 1>2 = {0}\nAM 3>4 = {1}\n", Common.AMS1ToS2 ? "ON" : "OFF", Common.AMS3ToS4 ? "ON" : "OFF"));
-            builder.Append(String.Format("Source mutes: {0}\n", GetSourceMuteString(Common.S1Mute, Common.S2Mute, Common.S3Mute, Common.S4Mute)));
+            builder.Append(String.Format("Sources: {0}\n", GetSourceMuteString(Common.S1Mute, Common.S2Mute, Common.S3Mute, Common.S4Mute)));
             builder.Append(String.Format("Vibrato: {0}\n", Common.Vibrato.ToString()));
             builder.Append(String.Format("Pitch bend: {0}\n", Common.PitchBend));
             builder.Append(String.Format("Wheel: assign = {0}, depth = {1}\n", Enum.GetNames(typeof(WheelAssign))[(int)Common.WheelAssign], Common.WheelDepth - 50));
             builder.Append(String.Format("Auto bend: {0}\n", Common.AutoBend.ToString()));
             builder.Append(String.Format("LFO: {0}\n", Common.LFO.ToString()));
             builder.Append(String.Format("Pres>Freq = {0}\n", Common.PressureFreq));
+            for (int i = 0; i < NumSources; i++)
+            {
+                builder.Append(String.Format("Source {0}:\n{1}", i + 1, Sources[i].ToString()));
+            }
             return builder.ToString();
         }
 
