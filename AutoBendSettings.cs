@@ -16,7 +16,7 @@ namespace k4tool
         public override string ToString()
         {
             StringBuilder builder = new StringBuilder();
-            builder.Append(String.Format("time = {0}, depth = {1}, ks>time = {2}, vel>dep = {3}", Time, Depth - 50, KeyScalingTime - 50, VelocityDepth - 50));
+            builder.Append(String.Format("TIME       ={0,3}\nDEPTH      ={1,2}\nKS>TIME    ={2,2}\nVEL>DEPTH  ={3,2}", Time, Depth - 50, KeyScalingTime - 50, VelocityDepth - 50));
             return builder.ToString();
         }
     }

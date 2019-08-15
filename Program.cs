@@ -111,7 +111,9 @@ namespace k4tool
                         Buffer.BlockCopy(data, i * SingleDataSize, singleData, 0, SingleDataSize);
                         Single single = new Single(singleData);
                         string name = GetPatchName(i);
-                        System.Console.WriteLine($"SINGLE {name} - {single.ToString()}");
+                        System.Console.WriteLine($"S{name} {single.Common.Name}");
+                        System.Console.WriteLine(single.ToString());
+                        System.Console.WriteLine();
                     }                
                 }
             }

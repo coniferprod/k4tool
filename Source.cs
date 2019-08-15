@@ -42,13 +42,16 @@ namespace k4tool
         public override string ToString()
         {
             StringBuilder builder = new StringBuilder();
-            builder.Append(String.Format("delay = {0}\n", Delay));
-            builder.Append(String.Format("wave = {0}\n", Wave.Instance[this.WaveNumber]));
-            builder.Append(String.Format("KS curve = {0}\n", KeyScalingCurve + 1));
-            builder.Append(String.Format("coarse = {0}, fine = {1}\n", Coarse - 24, Fine - 50));
-            builder.Append(String.Format("key tracking = {0}, fixed key = {1} ({2})\n", KeyTracking ? "ON" : "OFF", FixedKey, GetNoteName(FixedKey)));
-            builder.Append(String.Format("prs>freq switch = {0}, vib>a.bend switch = {1}\n", PressureToFrequencySwitch ? "ON" : "OFF", VibratoSwitch ? "ON" : "OFF"));
-            builder.Append(String.Format("velocity curve = {0}\n", VelocityCurve + 1));
+            builder.Append("S.COMMON\n");
+            builder.Append(String.Format("DELAY      ={0,3}\n", Delay));
+            builder.Append(String.Format("VEL CURVE  ={0,3}\n", VelocityCurve + 1));
+            builder.Append(String.Format("KS CURVE   ={0,3}\n", KeyScalingCurve + 1));
+            builder.Append("DCO\n");
+            builder.Append(String.Format("WAVE       ={0,3} ({1})\n", WaveNumber + 1, Wave.Instance[WaveNumber]));
+            builder.Append(String.Format("KEY TRACK  ={0}\n", KeyTracking ? "ON" : "OFF"));
+            builder.Append(String.Format("COARSE     ={0,3}\nFINE       ={1,3}\n", Coarse - 24, Fine - 50));
+            builder.Append(String.Format("FIXED KEY  ={0} ({1})\n", GetNoteName(FixedKey), FixedKey));
+            builder.Append(String.Format("PRESS      ={0}\nVIB/A.BEND ={1}\n", PressureToFrequencySwitch ? "ON" : "OFF", VibratoSwitch ? "ON" : "OFF"));
             builder.Append(String.Format("DCA: {0}", Amp.ToString()));
 
             return builder.ToString();

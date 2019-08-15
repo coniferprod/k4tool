@@ -17,7 +17,7 @@ namespace k4tool
             PressureDepth = 0;
             KeyScalingDepth = 0;
         }
-        
+
         public LevelModulation(int vel, int prs, int ks)
         {
             VelocityDepth = vel;

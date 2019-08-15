@@ -57,7 +57,7 @@ namespace k4tool
             }            
         }
 
-        private CommonSettings Common;
+        public CommonSettings Common;
 
         const int NumSources = 4;
 
@@ -451,17 +451,17 @@ namespace k4tool
         public override string ToString()
         {
             StringBuilder builder = new StringBuilder();
-            builder.Append(String.Format("{0}\nVolume = {1}\nEffect = {2}\nOutput = {3}\n", Common.Name, Common.Volume, Common.Effect + 1, "ABCDEFGH"[Common.Output]));
-            builder.Append(String.Format("Source mode = {0}\n", Enum.GetNames(typeof(SourceMode))[(int)Common.SourceMode]));
-            builder.Append(String.Format("Polyphony mode = {0}\n", Enum.GetNames(typeof(PolyphonyMode))[(int)Common.PolyphonyMode]));
-            builder.Append(String.Format("AM 1>2 = {0}\nAM 3>4 = {1}\n", Common.AMS1ToS2 ? "ON" : "OFF", Common.AMS3ToS4 ? "ON" : "OFF"));
+            builder.Append(String.Format("VOLUME     ={0,3}\nEFFECT PACH= {1,2}\nSUBMIX CH  =  {2}\n", Common.Volume, Common.Effect + 1, "ABCDEFGH"[Common.Output]));
+            builder.Append(String.Format("SOURCE MODE={0}\n", Enum.GetNames(typeof(SourceMode))[(int)Common.SourceMode]));
+            builder.Append(String.Format("AM 1>2     ={0}\nAM 3>4     ={1}\n", Common.AMS1ToS2 ? "ON" : "OFF", Common.AMS3ToS4 ? "ON" : "OFF"));
+            builder.Append(String.Format("POLY MODE  ={0}\n", Enum.GetNames(typeof(PolyphonyMode))[(int)Common.PolyphonyMode]));
+            builder.Append(String.Format("BNDR RANGE = {0,2}\n", Common.PitchBend));
+            builder.Append(String.Format("PRESS>FREQ = {0,2}\n", Common.PressureFreq));
+            builder.Append(String.Format("WHEEL\nASSIGN     ={0}\nDEPTH      ={1,2}\n", Enum.GetNames(typeof(WheelAssign))[(int)Common.WheelAssign], Common.WheelDepth - 50));
+            builder.Append(String.Format("AUTO BEND\n{0}\n", Common.AutoBend.ToString()));
             builder.Append(String.Format("Sources: {0}\n", GetSourceMuteString(Common.S1Mute, Common.S2Mute, Common.S3Mute, Common.S4Mute)));
-            builder.Append(String.Format("Vibrato: {0}\n", Common.Vibrato.ToString()));
-            builder.Append(String.Format("Pitch bend: {0}\n", Common.PitchBend));
-            builder.Append(String.Format("Wheel: assign = {0}, depth = {1}\n", Enum.GetNames(typeof(WheelAssign))[(int)Common.WheelAssign], Common.WheelDepth - 50));
-            builder.Append(String.Format("Auto bend: {0}\n", Common.AutoBend.ToString()));
-            builder.Append(String.Format("LFO: {0}\n", Common.LFO.ToString()));
-            builder.Append(String.Format("Pres>Freq = {0}\n", Common.PressureFreq));
+            builder.Append(String.Format("VIBRATO\n{0}\n", Common.Vibrato.ToString()));
+            builder.Append(String.Format("LFO\n{0}\n", Common.LFO.ToString()));
             for (int i = 0; i < NumSources; i++)
             {
                 builder.Append(String.Format("Source {0}:\n{1}", i + 1, Sources[i].ToString()));
