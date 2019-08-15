@@ -13,6 +13,14 @@ namespace k4tool
 
         public int Release; // 0~100
 
+        public Envelope()
+        {
+            Attack = 0;
+            Decay = 0;
+            Sustain = 0;
+            Release = 0;
+        }
+
         public Envelope(int a, int d, int s, int r)
         {
             Attack = a;
@@ -27,6 +35,5 @@ namespace k4tool
             builder.Append(String.Format("A:{0} D:{1} S:{2} R:{3}", Attack, Decay, Sustain, Release));
             return builder.ToString();
         }
-
     }
 }

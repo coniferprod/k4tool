@@ -34,14 +34,9 @@ namespace k4tool
 
         public Amplifier Amp;
 
-        public Filter Filter1;
-        public Filter Filter2;
-
         public Source()
         {
             Amp = new Amplifier();
-            Filter1 = new Filter();
-            Filter2 = new Filter();
         }
 
         public override string ToString()

@@ -63,10 +63,15 @@ namespace k4tool
 
         public Source[] Sources;
 
+        public Filter Filter1;
+        public Filter Filter2;
+
         public Single()
         {
             Sources = new Source[NumSources];
-            
+
+            Filter1 = new Filter();
+            Filter2 = new Filter();
         }
 
         public Single(byte[] data)
@@ -322,6 +327,108 @@ namespace k4tool
             Sources[3].Amp.TimeModulationKeyScaling = b & 0x7f;
 
             System.Console.WriteLine(String.Format("sanity check: before DCF, offset should be {0}, is {1}", 102, offset));
+
+            // DCF
+            Filter1 = new Filter();
+            Filter2 = new Filter();
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Filter1.Cutoff = b & 0x7f;
+            (b, offset) = Util.GetNextByte(data, offset);
+            Filter2.Cutoff = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Filter1.Resonance = b & 0x07;
+            Filter1.IsLFO = b.IsBitSet(3);
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Filter2.Resonance = b & 0x07;
+            Filter2.IsLFO = b.IsBitSet(3);
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Filter1.CutoffModVel = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Filter2.CutoffModVel = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Filter1.CutoffModPrs = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Filter2.CutoffModPrs = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Filter1.CutoffModKS = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Filter2.CutoffModKS = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Filter1.EnvelopeDepth = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Filter2.EnvelopeDepth = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Filter1.EnvelopeVelocityDepth = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Filter2.EnvelopeVelocityDepth = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Filter1.Env.Attack = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Filter2.Env.Attack = b & 0x7f;
+            
+            (b, offset) = Util.GetNextByte(data, offset);
+            Filter1.Env.Decay = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Filter2.Env.Decay = b & 0x7f;
+            
+            (b, offset) = Util.GetNextByte(data, offset);
+            Filter1.Env.Sustain = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Filter2.Env.Sustain = b & 0x7f;
+            
+            (b, offset) = Util.GetNextByte(data, offset);
+            Filter1.Env.Release = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Filter2.Env.Release = b & 0x7f;
+            
+            (b, offset) = Util.GetNextByte(data, offset);
+            Filter1.TimeModulationOnVelocity = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Filter2.TimeModulationOnVelocity = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Filter1.TimeModulationOffVelocity = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Filter2.TimeModulationOffVelocity = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Filter1.TimeModulationKeyScaling = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Filter2.TimeModulationKeyScaling = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            // "Check sum value (s130) is the sum of the A5H and s0 ~ s129".
+            byte computedChecksum = 0;
+            for (int i = 0; i < Program.SingleDataSize - 1; i++)
+            {
+                computedChecksum = data[i];
+            }
+            computedChecksum += 0xA5;
+            if (b != computedChecksum)
+            {
+                System.Console.WriteLine(String.Format("CHECKSUM ERROR! Expected {0}, got {1}", b, computedChecksum));
+            }
         }
 
         private string GetName(byte[] data, int offset)
@@ -359,6 +466,8 @@ namespace k4tool
             {
                 builder.Append(String.Format("Source {0}:\n{1}", i + 1, Sources[i].ToString()));
             }
+            builder.Append(String.Format("F1: {0}\n", Filter1.ToString()));
+            builder.Append(String.Format("F2: {0}\n", Filter1.ToString()));
             return builder.ToString();
         }
 
