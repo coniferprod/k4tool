@@ -37,6 +37,13 @@ namespace k4tool
         public Filter Filter1;
         public Filter Filter2;
 
+        public Source()
+        {
+            Amp = new Amplifier();
+            Filter1 = new Filter();
+            Filter2 = new Filter();
+        }
+
         public override string ToString()
         {
             StringBuilder builder = new StringBuilder();
@@ -47,6 +54,7 @@ namespace k4tool
             builder.Append(String.Format("key tracking = {0}, fixed key = {1} ({2})\n", KeyTracking ? "ON" : "OFF", FixedKey, GetNoteName(FixedKey)));
             builder.Append(String.Format("prs>freq switch = {0}, vib>a.bend switch = {1}\n", PressureToFrequencySwitch ? "ON" : "OFF", VibratoSwitch ? "ON" : "OFF"));
             builder.Append(String.Format("velocity curve = {0}\n", VelocityCurve + 1));
+            builder.Append(String.Format("DCA: {0}", Amp.ToString()));
 
             return builder.ToString();
         }

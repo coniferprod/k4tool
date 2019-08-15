@@ -206,6 +206,109 @@ namespace k4tool
                 Sources[i].VibratoSwitch = b.IsBitSet(1);
                 Sources[i].VelocityCurve = ((b >> 2) & 0x07);
             }
+
+            // DCA
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[0].Amp.EnvelopeLevel = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[1].Amp.EnvelopeLevel = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[2].Amp.EnvelopeLevel = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[3].Amp.EnvelopeLevel = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[0].Amp.Env.Attack = b & 0x7f;
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[1].Amp.Env.Attack = b & 0x7f;
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[2].Amp.Env.Attack = b & 0x7f;
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[3].Amp.Env.Attack = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[0].Amp.Env.Decay = b & 0x7f;
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[1].Amp.Env.Decay = b & 0x7f;
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[2].Amp.Env.Decay = b & 0x7f;
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[3].Amp.Env.Decay = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[0].Amp.Env.Sustain = b & 0x7f;
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[1].Amp.Env.Sustain = b & 0x7f;
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[2].Amp.Env.Sustain = b & 0x7f;
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[3].Amp.Env.Sustain = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[0].Amp.Env.Release = b & 0x7f;
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[1].Amp.Env.Release = b & 0x7f;
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[2].Amp.Env.Release = b & 0x7f;
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[3].Amp.Env.Release = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[0].Amp.LevelModulationVelocity = b & 0x7f;
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[1].Amp.LevelModulationVelocity = b & 0x7f;
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[2].Amp.LevelModulationVelocity = b & 0x7f;
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[3].Amp.LevelModulationVelocity = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[0].Amp.LevelModulationPressure = b & 0x7f;
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[1].Amp.LevelModulationPressure = b & 0x7f;
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[2].Amp.LevelModulationPressure = b & 0x7f;
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[3].Amp.LevelModulationPressure = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[0].Amp.LevelModulationKeyScaling = b & 0x7f;
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[1].Amp.LevelModulationKeyScaling = b & 0x7f;
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[2].Amp.LevelModulationKeyScaling = b & 0x7f;
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[3].Amp.LevelModulationKeyScaling = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[0].Amp.TimeModulationOnVelocity = b & 0x7f;
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[1].Amp.TimeModulationOnVelocity = b & 0x7f;
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[2].Amp.TimeModulationOnVelocity = b & 0x7f;
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[3].Amp.TimeModulationOnVelocity = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[0].Amp.TimeModulationOffVelocity = b & 0x7f;
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[1].Amp.TimeModulationOffVelocity = b & 0x7f;
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[2].Amp.TimeModulationOffVelocity = b & 0x7f;
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[3].Amp.TimeModulationOffVelocity = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[0].Amp.TimeModulationKeyScaling = b & 0x7f;
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[1].Amp.TimeModulationKeyScaling = b & 0x7f;
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[2].Amp.TimeModulationKeyScaling = b & 0x7f;
+            (b, offset) = Util.GetNextByte(data, offset);
+            Sources[3].Amp.TimeModulationKeyScaling = b & 0x7f;
         }
 
         private string GetName(byte[] data, int offset)

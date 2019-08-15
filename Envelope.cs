@@ -1,3 +1,6 @@
+using System;
+using System.Text;
+
 namespace k4tool
 {
     public class Envelope
@@ -9,6 +12,21 @@ namespace k4tool
         public int Sustain; // 0~100
 
         public int Release; // 0~100
+
+        public Envelope(int a, int d, int s, int r)
+        {
+            Attack = a;
+            Decay = d;
+            Sustain = s;
+            Release = r;
+        }
+
+        public override string ToString()
+        {
+            StringBuilder builder = new StringBuilder();
+            builder.Append(String.Format("A:{0} D:{1} S:{2} R:{3}", Attack, Decay, Sustain, Release));
+            return builder.ToString();
+        }
 
     }
 }
