@@ -5,6 +5,13 @@ namespace k4tool
 {
     public class Single
     {
+        public enum SourceMode
+        {
+            Normal,
+            Twin,
+            Double
+        };
+
         public enum PolyphonyMode
         {
             Poly1,
@@ -15,14 +22,14 @@ namespace k4tool
 
         public class CommonSettings
         {
-            public string Name;
-            
             public int Volume;  // 0~100
 
-            public int Effect;  // 0~31 / 1~32
+            public int Effect;  // 0~31 / 1~32 (on K4)
 
-            public int Output; // 0~7 / A~H
+            public int Output; // 0~7 / A~H (on K4r)
 
+            public string Name;
+            
             public SourceMode SourceMode;
 
             public PolyphonyMode PolyphonyMode;
@@ -41,7 +48,7 @@ namespace k4tool
 
             public int WheelDepth; // 0~100 (±50)
 
-            public AutoBendSettings AutoBend;
+            public AutoBendSettings AutoBend;  // same as portamento?
 
             public LFOSettings LFO;
 
@@ -51,9 +58,21 @@ namespace k4tool
 
             public CommonSettings()
             {
+                Volume = 80;
+                Effect = 0;
+                Output = 0;
+                Name = "NewSound";
+                SourceMode = SourceMode.Normal;
+                PolyphonyMode = PolyphonyMode.Poly1;
+                AMS1ToS2 = false;
+                AMS3ToS4 = false;
+                PitchBend = 2;
+                WheelAssign = WheelAssign.Vibrato;
+                WheelDepth = 0;
                 Vibrato = new VibratoSettings();
-                AutoBend = new AutoBendSettings();
                 LFO = new LFOSettings();
+                AutoBend = new AutoBendSettings();
+                PressureFreq = 0;
             }            
         }
 
@@ -68,8 +87,8 @@ namespace k4tool
 
         public Single()
         {
+            Common = new CommonSettings();
             Sources = new Source[NumSources];
-
             Filter1 = new Filter();
             Filter2 = new Filter();
         }
@@ -470,7 +489,5 @@ namespace k4tool
             builder.Append(String.Format("F2: {0}\n", Filter2.ToString()));
             return builder.ToString();
         }
-
     }
-    
 }

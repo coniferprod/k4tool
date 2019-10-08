@@ -23,8 +23,13 @@ namespace k4tool
 
         public Filter()
         {
-            Env = new Envelope();
+            Cutoff = 99;
+            Resonance = 0;
             CutoffMod = new LevelModulation();
+            IsLFO = false;
+            Env = new Envelope();
+            EnvelopeDepth = 0;
+            EnvelopeVelocityDepth = 0;
             TimeMod = new TimeModulation();
         }
 

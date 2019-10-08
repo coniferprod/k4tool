@@ -3,13 +3,6 @@ using System.Text;
 
 namespace k4tool
 {
-    public enum SourceMode
-    {
-        Normal,
-        Twin,
-        Double
-    };
-
     public class Source
     {
         public int Delay;  // 0~100
