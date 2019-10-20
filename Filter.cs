@@ -1,10 +1,13 @@
 using System;
 using System.Text;
+using System.Collections.Generic;
 
 namespace k4tool
 {
     public class Filter
     {
+        public const int DataSize = 28;
+
         public int Cutoff;  // 0~100
 
         public int Resonance; // 0 ~ 7 / 1 ~ 8
@@ -33,6 +36,58 @@ namespace k4tool
             TimeMod = new TimeModulation();
         }
 
+        public Filter(byte[] data)
+        {
+            int offset = 0;
+            byte b = 0;  // will be reused when getting the next byte
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Cutoff = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Resonance = b & 0x07;
+            IsLFO = b.IsBitSet(3);
+
+            CutoffMod = new LevelModulation();
+            (b, offset) = Util.GetNextByte(data, offset);
+            CutoffMod.VelocityDepth = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            CutoffMod.PressureDepth = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            CutoffMod.KeyScalingDepth = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            EnvelopeDepth = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            EnvelopeVelocityDepth = b & 0x7f;
+
+            Env = new Envelope();
+            (b, offset) = Util.GetNextByte(data, offset);
+            Env.Attack = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Env.Decay = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            Env.Sustain = b & 0x7f;
+            
+            (b, offset) = Util.GetNextByte(data, offset);
+            Env.Release = b & 0x7f;
+
+            TimeMod = new TimeModulation();
+            (b, offset) = Util.GetNextByte(data, offset);
+            TimeMod.AttackVelocity = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            TimeMod.ReleaseVelocity = b & 0x7f;
+
+            (b, offset) = Util.GetNextByte(data, offset);
+            TimeMod.KeyScaling = b & 0x7f;
+        }
+
         public override string ToString()
         {
             StringBuilder builder = new StringBuilder();
@@ -44,5 +99,11 @@ namespace k4tool
             return builder.ToString();
         }
 
+        public byte[] ToData()
+        {
+            List<byte> data = new List<byte>();
+                        
+            return data.ToArray();
+        }
     }
 }

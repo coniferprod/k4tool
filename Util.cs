@@ -231,6 +231,19 @@ namespace k4tool
 
             return (true, a1.Length);
         }
+
+        public static List<byte> EveryNthElement(List<byte> list, int n, int start)
+        {
+            List<byte> result = new List<byte>();
+            for (int i = 0; i < list.Count; i++)
+            {
+                if ((i % n) == 0)
+                {
+                    result.Add(list[i + start]);  // TODO: Check this!
+                }
+            }
+            return result;
+        }
     }
 
     // Byte extensions from https://derekwill.com/2015/03/05/bit-processing-in-c/
