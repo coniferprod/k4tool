@@ -102,6 +102,25 @@ namespace k4tool
         public byte[] ToData()
         {
             List<byte> data = new List<byte>();
+            data.Add((byte)Cutoff);
+            
+            StringBuilder b104 = new StringBuilder("0000");
+            b104.Append(IsLFO ? "1" : "0");
+            b104.Append(Convert.ToString(Resonance - 1, 2).PadLeft(3, '0'));
+            data.Add(Convert.ToByte(b104.ToString(), 2));
+            
+            data.Add((byte)CutoffMod.VelocityDepth);
+            data.Add((byte)CutoffMod.PressureDepth);
+            data.Add((byte)CutoffMod.KeyScalingDepth);
+            data.Add((byte)EnvelopeDepth);
+            data.Add((byte)EnvelopeVelocityDepth);
+            data.Add((byte)Env.Attack);
+            data.Add((byte)Env.Decay);
+            data.Add((byte)Env.Sustain);
+            data.Add((byte)Env.Release);
+            data.Add((byte)TimeMod.AttackVelocity);
+            data.Add((byte)TimeMod.ReleaseVelocity);
+            data.Add((byte)TimeMod.KeyScaling);
                         
             return data.ToArray();
         }

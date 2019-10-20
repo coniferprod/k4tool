@@ -267,6 +267,8 @@ namespace k4tool
         public Filter Filter1;
         public Filter Filter2;
 
+        public byte Checksum;
+
         public Single()
         {
             Common = new CommonSettings();
@@ -274,11 +276,12 @@ namespace k4tool
             Amplifiers = new Amplifier[NumSources];
             Filter1 = new Filter();
             Filter2 = new Filter();
+            Checksum = 0;
         }
 
         public Single(byte[] data)
         {
-            System.Console.WriteLine(String.Format("Starting to parse single patch from data (length = {0})", data.Length));
+            //System.Console.WriteLine(String.Format("Starting to parse single patch from data (length = {0})", data.Length));
 
             int offset = 0;
             Common = new CommonSettings(data);
@@ -326,15 +329,12 @@ namespace k4tool
             byte b = 0;  // will be reused when getting the next byte
             (b, offset) = Util.GetNextByte(data, offset);
             // "Check sum value (s130) is the sum of the A5H and s0 ~ s129".
-            byte computedChecksum = 0;
-            for (int i = 0; i < Program.SingleDataSize - 1; i++)
+            Checksum = b;
+
+            byte sum = ComputeChecksum();
+            if (Checksum != sum)
             {
-                computedChecksum = data[i];
-            }
-            computedChecksum += 0xA5;
-            if (b != computedChecksum)
-            {
-                System.Console.WriteLine(String.Format("CHECKSUM ERROR! Expected {0}, got {1}", b, computedChecksum));
+                System.Console.WriteLine(String.Format("CHECKSUM ERROR! Expected {0}, got {1}", Checksum, sum));
             }
         }
 
@@ -356,7 +356,19 @@ namespace k4tool
             return builder.ToString();
         }
 
-        public byte[] ToData()
+        private byte ComputeChecksum()
+        {
+            byte sum = 0;
+            byte[] data = CollectData();
+            for (int i = 0; i < data.Length; i++)
+            {
+                sum += data[i];
+            }
+            sum += 0xA5;
+            return sum;
+        }
+
+        private byte[] CollectData()
         {
             List<byte> data = new List<byte>();
             
@@ -397,6 +409,15 @@ namespace k4tool
             }
 
             return data.ToArray();
+        }
+
+        public byte[] ToData()
+        {
+            byte sum = ComputeChecksum();
+            List<byte> allData = new List<byte>();
+            allData.AddRange(CollectData());
+            allData.Add(sum);
+            return allData.ToArray();
         }
     }
 }

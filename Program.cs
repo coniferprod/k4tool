@@ -126,8 +126,8 @@ namespace k4tool
                     Single single = new Single(singleData);
                     string name = GetPatchName(i);
                     System.Console.WriteLine($"S{name} {single.Common.Name}");
-                    System.Console.WriteLine(single.ToString());
-                    System.Console.WriteLine();
+                    //System.Console.WriteLine(single.ToString());
+                    //System.Console.WriteLine();
                 }                
             }
         }

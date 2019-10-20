@@ -106,18 +106,20 @@ namespace k4tool
 
             // Make an 8-bit binary string representation
             string waveNumberString = Convert.ToString(WaveNumber, 2).PadLeft(8, '0');
-            string ksCurveString = Convert.ToString(KeyScalingCurve, 2).PadLeft(4, '0');
-            StringBuilder b34 = new StringBuilder(ksCurveString);
+            System.Console.WriteLine(String.Format("wave number in binary = '{0}'", waveNumberString));
+            string ksCurveString = Convert.ToString(KeyScalingCurve, 2).PadLeft(3, '0');
+            StringBuilder b34 = new StringBuilder("0");
+            b34.Append(ksCurveString);
             b34.Append("000");
             b34.Append(waveNumberString[0]);
-            data.Add(Convert.ToByte(b34.ToString()));
-            data.Add(Convert.ToByte(waveNumberString.Substring(1)));
+            data.Add(Convert.ToByte(b34.ToString(), 2));
+            data.Add(Convert.ToByte(waveNumberString.Substring(1), 2));
 
             // Pack the coarse and key track values into one byte
             StringBuilder b42 = new StringBuilder("0");
             b42.Append(KeyTracking ? "1" : "0");
             b42.Append(Convert.ToString(Coarse + 24, 2).PadLeft(6, '0'));
-            data.Add(Convert.ToByte(b42.ToString()));
+            data.Add(Convert.ToByte(b42.ToString(), 2));
 
             data.Add((byte)FixedKey);
             data.Add((byte)Fine);
@@ -127,7 +129,7 @@ namespace k4tool
             b54.Append(Convert.ToString(VelocityCurve, 2).PadLeft(6, '0'));
             b54.Append(VibratoSwitch ? "1" : "0");
             b54.Append(PressureToFrequencySwitch ? "1" : "0");
-            data.Add(Convert.ToByte(b54.ToString()));
+            data.Add(Convert.ToByte(b54.ToString(), 2));
 
             return data.ToArray();
         }        
