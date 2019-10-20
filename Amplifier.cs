@@ -67,7 +67,7 @@ namespace k4tool
     // Source-specific amplifier settings
     public class Amplifier
     {
-        public const int DataSize = 43;
+        public const int DataSize = 11;
 
         public Envelope Env;
 

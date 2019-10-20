@@ -278,6 +278,8 @@ namespace k4tool
 
         public Single(byte[] data)
         {
+            System.Console.WriteLine(String.Format("Starting to parse single patch from data (length = {0})", data.Length));
+
             int offset = 0;
             Common = new CommonSettings(data);
             offset += CommonSettings.DataSize;

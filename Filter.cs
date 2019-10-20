@@ -6,7 +6,7 @@ namespace k4tool
 {
     public class Filter
     {
-        public const int DataSize = 28;
+        public const int DataSize = 14;
 
         public int Cutoff;  // 0~100
 

@@ -84,38 +84,7 @@ namespace k4tool
 
             foreach (byte[] message in messages)
             {
-                SystemExclusiveHeader header = GetSystemExclusiveHeader(message);
-                // TODO: Check the SysEx file header for validity
-
-                // Extract the patch bytes (discarding the SysEx header)
-                int dataLength = message.Length - SystemExclusiveHeaderLength;
-                System.Console.WriteLine($"data length = {dataLength}");
-                byte[] data = new byte[dataLength];
-                Array.Copy(message, SystemExclusiveHeaderLength, data, 0, dataLength);
-
-                SystemExclusiveFunction function = (SystemExclusiveFunction)header.Function;
-                if (function != SystemExclusiveFunction.AllPatchDataDump)
-                {
-                    System.Console.WriteLine($"This is not an all patch data dump: {header.ToString()}");
-                    // See section 5-11 in the Kawai K4 MIDI implementation manual
-
-                    break;
-                }
-
-                if (command.Equals("list"))
-                {
-                    // TODO: Split the data into chunks representing single, multi, drum, and effect data
-                    for (int i = 0; i < SinglePatchCount; i++)
-                    {
-                        byte[] singleData = new byte[SingleDataSize];
-                        Buffer.BlockCopy(data, i * SingleDataSize, singleData, 0, SingleDataSize);
-                        Single single = new Single(singleData);
-                        string name = GetPatchName(i);
-                        System.Console.WriteLine($"S{name} {single.Common.Name}");
-                        System.Console.WriteLine(single.ToString());
-                        System.Console.WriteLine();
-                    }                
-                }
+                ProcessMessage(message, command);
             }
 
             // For debugging: dump the wave list
@@ -125,6 +94,42 @@ namespace k4tool
             //}
 
             return 0;
+        }
+
+        private static void ProcessMessage(byte[] message, string command)
+        {
+            SystemExclusiveHeader header = GetSystemExclusiveHeader(message);
+            // TODO: Check the SysEx file header for validity
+
+            // Extract the patch bytes (discarding the SysEx header)
+            int dataLength = message.Length - SystemExclusiveHeaderLength;
+            System.Console.WriteLine($"data length = {dataLength}");
+            byte[] data = new byte[dataLength];
+            Array.Copy(message, SystemExclusiveHeaderLength, data, 0, dataLength);
+
+            SystemExclusiveFunction function = (SystemExclusiveFunction)header.Function;
+            if (function != SystemExclusiveFunction.AllPatchDataDump)
+            {
+                System.Console.WriteLine($"This is not an all patch data dump: {header.ToString()}");
+                // See section 5-11 in the Kawai K4 MIDI implementation manual
+
+                return;
+            }
+
+            if (command.Equals("list"))
+            {
+                // TODO: Split the data into chunks representing single, multi, drum, and effect data
+                for (int i = 0; i < SinglePatchCount; i++)
+                {
+                    byte[] singleData = new byte[SingleDataSize];
+                    Buffer.BlockCopy(data, i * SingleDataSize, singleData, 0, SingleDataSize);
+                    Single single = new Single(singleData);
+                    string name = GetPatchName(i);
+                    System.Console.WriteLine($"S{name} {single.Common.Name}");
+                    System.Console.WriteLine(single.ToString());
+                    System.Console.WriteLine();
+                }                
+            }
         }
 
         public static string GetPatchName(int p, int patchCount = 16)

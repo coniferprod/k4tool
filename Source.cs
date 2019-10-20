@@ -113,8 +113,7 @@ namespace k4tool
             data.Add(Convert.ToByte(b34.ToString()));
             data.Add(Convert.ToByte(waveNumberString.Substring(1)));
 
-            // TODO: Pack the coarse and key track values into one byte
-
+            // Pack the coarse and key track values into one byte
             StringBuilder b42 = new StringBuilder("0");
             b42.Append(KeyTracking ? "1" : "0");
             b42.Append(Convert.ToString(Coarse + 24, 2).PadLeft(6, '0'));
@@ -123,9 +122,9 @@ namespace k4tool
             data.Add((byte)FixedKey);
             data.Add((byte)Fine);
 
-            // TODO: Pack the velocity curve and a few other values into one byte
+            // Pack the velocity curve and a few other values into one byte
             StringBuilder b54 = new StringBuilder();
-            b54.Append(Convert.ToString(VelocityCurve, 2).PadLeft(6, '0'))
+            b54.Append(Convert.ToString(VelocityCurve, 2).PadLeft(6, '0'));
             b54.Append(VibratoSwitch ? "1" : "0");
             b54.Append(PressureToFrequencySwitch ? "1" : "0");
             data.Add(Convert.ToByte(b54.ToString()));
