@@ -92,10 +92,10 @@ namespace k4tool
             return builder.ToString();
         }
 
-        public static String GetNoteName(int noteNumber) {
-            String[] notes = new String[] {"A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"};
+        public static string GetNoteName(int noteNumber) {
+            string[] notes = new string[] {"A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"};
             int octave = noteNumber / 12 + 1;
-            String name = notes[noteNumber % 12];
+            string name = notes[noteNumber % 12];
             return name + octave;
         }
 

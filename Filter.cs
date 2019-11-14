@@ -1,6 +1,7 @@
 using System;
 using System.Text;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace k4tool
 {
@@ -45,7 +46,7 @@ namespace k4tool
             Cutoff = b & 0x7f;
 
             (b, offset) = Util.GetNextByte(data, offset);
-            Resonance = b & 0x07;
+            Resonance = (b & 0x07) + 1;
             IsLFO = b.IsBitSet(3);
 
             CutoffMod = new LevelModulation();
@@ -106,6 +107,8 @@ namespace k4tool
             
             StringBuilder b104 = new StringBuilder("0000");
             b104.Append(IsLFO ? "1" : "0");
+            string resString = Convert.ToString(Resonance - 1, 2);
+            Debug.WriteLine(String.Format("Filter resonance = {0}, as bit string = '{1}'", Resonance - 1, resString));
             b104.Append(Convert.ToString(Resonance - 1, 2).PadLeft(3, '0'));
             data.Add(Convert.ToByte(b104.ToString(), 2));
             

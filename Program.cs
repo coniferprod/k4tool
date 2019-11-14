@@ -59,6 +59,7 @@ namespace k4tool
         public const int MultiPatchCount = 64;   // same as single
 
         public const int SingleDataSize = 131;
+        public const int MultiDataSize = 77;
 
         static int Main(string[] args)
         {
@@ -119,16 +120,46 @@ namespace k4tool
             if (command.Equals("list"))
             {
                 // TODO: Split the data into chunks representing single, multi, drum, and effect data
+                Console.WriteLine(String.Format("Total data length = {0} bytes", data.Length));
+
+                int offset = 0;
+
+                Console.WriteLine(String.Format("Single patches (starting at offset {0}):", offset));
                 for (int i = 0; i < SinglePatchCount; i++)
                 {
+                    Console.WriteLine(String.Format("offset = {0}:", offset));
                     byte[] singleData = new byte[SingleDataSize];
-                    Buffer.BlockCopy(data, i * SingleDataSize, singleData, 0, SingleDataSize);
+                    Buffer.BlockCopy(data, offset, singleData, 0, SingleDataSize);
                     Single single = new Single(singleData);
                     string name = GetPatchName(i);
                     System.Console.WriteLine($"S{name} {single.Common.Name}");
                     //System.Console.WriteLine(single.ToString());
                     //System.Console.WriteLine();
-                }                
+                    offset += SingleDataSize;
+                }
+
+                Console.WriteLine(String.Format("Multi patches (starting at offset {0}):", offset));
+                for (int i = 0; i < MultiPatchCount; i++)
+                {
+                    Console.WriteLine(String.Format("offset = {0}:", offset));
+                    byte[] multiData = new byte[MultiDataSize];
+                    Buffer.BlockCopy(data, offset, multiData, 0, MultiDataSize);
+                    Multi multi = new Multi(multiData);
+                    //string name = GetPatchName(i);
+                    //System.Console.WriteLine($"S{name} {multi.Name}");
+                    System.Console.WriteLine(multi.ToString());
+                    System.Console.WriteLine();
+                    offset += MultiDataSize;
+                }
+
+/*
+                for (int i = 0; i < 128; i++)
+                {
+                    Console.Write(GetNoteName(i));
+                    Console.Write(" ");
+                }
+                Console.WriteLine();
+*/                
             }
         }
 
@@ -139,6 +170,13 @@ namespace k4tool
 	        int patchIndex = (p % patchCount) + 1;
 
 	        return String.Format("{0}-{1,2}", bankLetter, patchIndex);
+        }
+
+        public static string GetNoteName(int noteNumber) {
+            string[] notes = new string[] {"A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"};
+            int octave = noteNumber / 12 + 1;
+            string name = notes[noteNumber % 12];
+            return name + octave;
         }
     }
 }
