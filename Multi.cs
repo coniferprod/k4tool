@@ -6,6 +6,8 @@ namespace k4tool
 {
     class Multi
     {
+        public const int DataSize = 77;
+
         public static readonly int SectionCount = 8;
 
         private string name;

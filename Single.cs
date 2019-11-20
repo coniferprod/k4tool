@@ -257,6 +257,8 @@ namespace k4tool
 
     public class Single
     {
+        public const int DataSize = 131;
+
         public CommonSettings Common;
 
         const int NumSources = 4;
@@ -331,11 +333,13 @@ namespace k4tool
             // "Check sum value (s130) is the sum of the A5H and s0 ~ s129".
             Checksum = b;
 
+            /*
             byte sum = ComputeChecksum();
             if (Checksum != sum)
             {
                 System.Console.WriteLine(String.Format("CHECKSUM ERROR! Expected {0}, got {1}", Checksum, sum));
             }
+            */
         }
 
         public override string ToString()
