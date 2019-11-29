@@ -5,6 +5,9 @@ using System.Text;
 
 using CommandLine;
 
+using KSynthLib.Common;
+using KSynthLib.K4;
+
 namespace k4tool
 {
     public enum SystemExclusiveFunction
@@ -141,13 +144,13 @@ namespace k4tool
             {
                 byte[] singleData = new byte[Single.DataSize];
                 Buffer.BlockCopy(data, offset, singleData, 0, Single.DataSize);
-                Single single = new Single(singleData);
+                SinglePatch single = new SinglePatch(singleData);
                 string name = GetPatchName(i);
                 sb.Append($"S{name}  {single.Common.Name}\n");
                 if ((i + 1) % 16 == 0) {
                     sb.Append("\n");
                 }
-                offset += Single.DataSize;
+                offset += SinglePatch.DataSize;
             }
             sb.Append("\n");
 
@@ -174,20 +177,20 @@ namespace k4tool
 
             sb.Append("<tt><table>\n");
 
-            Single[][] banks = new Single[BankCount][]; //BankCount, PatchesPerBank];
+            SinglePatch[][] banks = new SinglePatch[BankCount][]; //BankCount, PatchesPerBank];
 
             int offset = 0;
 
             for (int bankNumber = 0; bankNumber < BankCount; bankNumber++)
             {
-                Single[] patches = new Single[PatchesPerBank];
+                SinglePatch[] patches = new SinglePatch[PatchesPerBank];
                 for (int patchNumber = 0; patchNumber < PatchesPerBank; patchNumber++)
                 {
-                    byte[] singleData = new byte[Single.DataSize];
+                    byte[] singleData = new byte[SinglePatch.DataSize];
                     Buffer.BlockCopy(data, offset, singleData, 0, Single.DataSize);
-                    Single single = new Single(singleData);
+                    SinglePatch single = new SinglePatch(singleData);
                     patches[patchNumber] = single;
-                    offset += Single.DataSize;
+                    offset += SinglePatch.DataSize;
                 }
 
                 banks[bankNumber] = patches;
@@ -211,9 +214,9 @@ namespace k4tool
                 sb.Append(String.Format("    <td>{0,2}</td>\n", patchNumber + 1));
                 for (int bankNumber = 0; bankNumber < BankCount; bankNumber++)
                 {
-                    Single[] patches = banks[bankNumber];
+                    SinglePatch[] patches = banks[bankNumber];
                     string patchId = GetPatchName(bankNumber * patchNumber);
-                    Single single = patches[patchNumber];
+                    SinglePatch single = patches[patchNumber];
                     sb.Append(String.Format($"    <td>{single.Common.Name:8}</td>\n"));
                 }
                 sb.Append("</tr>\n");
@@ -267,12 +270,12 @@ namespace k4tool
                 Console.WriteLine(String.Format("offset = {0}:", offset));
                 byte[] singleData = new byte[Single.DataSize];
                 Buffer.BlockCopy(data, offset, singleData, 0, Single.DataSize);
-                Single single = new Single(singleData);
+                SinglePatch single = new SinglePatch(singleData);
                 string name = GetPatchName(i);
                 System.Console.WriteLine($"S{name} {single.Common.Name}");
                 //System.Console.WriteLine(single.ToString());
                 //System.Console.WriteLine();
-                offset += Single.DataSize;
+                offset += SinglePatch.DataSize;
             }
 
             Console.WriteLine(String.Format("Multi patches (starting at offset {0}):", offset));
