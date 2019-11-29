@@ -142,8 +142,8 @@ namespace k4tool
             int offset = 0;
             for (int i = 0; i < SinglePatchCount; i++)
             {
-                byte[] singleData = new byte[Single.DataSize];
-                Buffer.BlockCopy(data, offset, singleData, 0, Single.DataSize);
+                byte[] singleData = new byte[SinglePatch.DataSize];
+                Buffer.BlockCopy(data, offset, singleData, 0, SinglePatch.DataSize);
                 SinglePatch single = new SinglePatch(singleData);
                 string name = GetPatchName(i);
                 sb.Append($"S{name}  {single.Common.Name}\n");
@@ -157,15 +157,15 @@ namespace k4tool
             sb.Append("MULTI patches:\n");
             for (int i = 0; i < MultiPatchCount; i++)
             {
-                byte[] multiData = new byte[Multi.DataSize];
-                Buffer.BlockCopy(data, offset, multiData, 0, Multi.DataSize);
-                Multi multi = new Multi(multiData);
+                byte[] multiData = new byte[MultiPatch.DataSize];
+                Buffer.BlockCopy(data, offset, multiData, 0, MultiPatch.DataSize);
+                MultiPatch multi = new MultiPatch(multiData);
                 string name = GetPatchName(i);
                 sb.Append($"M{name}  {multi.Name}\n");
                 if ((i + 1) % 16 == 0) {
                     sb.Append("\n");
                 }
-                offset += Multi.DataSize;
+                offset += MultiPatch.DataSize;
             }
 
             return sb.ToString();
@@ -187,7 +187,7 @@ namespace k4tool
                 for (int patchNumber = 0; patchNumber < PatchesPerBank; patchNumber++)
                 {
                     byte[] singleData = new byte[SinglePatch.DataSize];
-                    Buffer.BlockCopy(data, offset, singleData, 0, Single.DataSize);
+                    Buffer.BlockCopy(data, offset, singleData, 0, SinglePatch.DataSize);
                     SinglePatch single = new SinglePatch(singleData);
                     patches[patchNumber] = single;
                     offset += SinglePatch.DataSize;
@@ -268,8 +268,8 @@ namespace k4tool
             for (int i = 0; i < SinglePatchCount; i++)
             {
                 Console.WriteLine(String.Format("offset = {0}:", offset));
-                byte[] singleData = new byte[Single.DataSize];
-                Buffer.BlockCopy(data, offset, singleData, 0, Single.DataSize);
+                byte[] singleData = new byte[SinglePatch.DataSize];
+                Buffer.BlockCopy(data, offset, singleData, 0, SinglePatch.DataSize);
                 SinglePatch single = new SinglePatch(singleData);
                 string name = GetPatchName(i);
                 System.Console.WriteLine($"S{name} {single.Common.Name}");
@@ -282,14 +282,14 @@ namespace k4tool
             for (int i = 0; i < MultiPatchCount; i++)
             {
                 Console.WriteLine(String.Format("offset = {0}:", offset));
-                byte[] multiData = new byte[Multi.DataSize];
-                Buffer.BlockCopy(data, offset, multiData, 0, Multi.DataSize);
-                Multi multi = new Multi(multiData);
+                byte[] multiData = new byte[MultiPatch.DataSize];
+                Buffer.BlockCopy(data, offset, multiData, 0, MultiPatch.DataSize);
+                MultiPatch multi = new MultiPatch(multiData);
                 string name = GetPatchName(i);
                 System.Console.WriteLine($"M{name} {multi.Name}");
                 //System.Console.WriteLine(multi.ToString());
                 //System.Console.WriteLine();
-                offset += Multi.DataSize;
+                offset += MultiPatch.DataSize;
             }
         }
 
