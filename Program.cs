@@ -10,60 +10,13 @@ using KSynthLib.K4;
 
 namespace k4tool
 {
-    public enum SystemExclusiveFunction
-    {
-        OnePatchDumpRequest = 0x00,
-        BlockPatchDumpRequest = 0x01,
-        AllPatchDumpRequest = 0x02,
-        ParameterSend = 0x10,
-        OnePatchDataDump = 0x20,
-        BlockPatchDataDump = 0x21,
-        AllPatchDataDump = 0x22,
-        EditBufferDump = 0x23,
-        ProgramChange = 0x30,
-        WriteComplete = 0x40,
-        WriteError = 0x41,
-        WriteErrorProtect = 0x42,
-        WriteErrorNoCard = 0x43
-    }
-
-    public class SystemExclusiveHeader
-    {
-        public const int DataSize = 8;
-
-        public byte ManufacturerID;
-	    public byte Channel;
-	    public byte Function;
-	    public byte Group;
-	    public byte MachineID;
-	    public byte Substatus1;
-	    public byte Substatus2;
-
-        public SystemExclusiveHeader(byte[] data)
-        {
-            // TODO: Check that data[0] is the SysEx identifier $F0
-            ManufacturerID = data[1];
-            Channel = data[2];
-		    Function = data[3];
-		    Group = data[4];
-		    MachineID = data[5];
-		    Substatus1 = data[6];
-		    Substatus2 = data[7];
-        }
-
-        public override string ToString()
-        {
-            return String.Format("ManufacturerID = {0,2:X2}h, Channel = {1,2:X2}h, Function = {2,2:X2}h, Group = {3,2:X2}h, MachineID = {4,2:X2}h, Substatus1 = {5,2:X2}h, Substatus2 = {6,2:X2}h", ManufacturerID, Channel, Function, Group, MachineID, Substatus1, Substatus2);
-        }
-    }
-
     [Verb("list", HelpText = "List contents of bank.")]
     public class ListOptions
     {
         [Option('f', "filename", Required = true, HelpText = "Input file to be processed.")]
         public string FileName { get; set; }
 
-        [Option('o', "output", Required = true, HelpText = "Output file format ('text' or 'html'")]
+        [Option('o', "output", Required = true, HelpText = "Output file format ('text' or 'html')")]
         public string Output { get; set; }
     }
 
@@ -74,6 +27,19 @@ namespace k4tool
         public string FileName { get; set; }
     }
 
+    [Verb("report", HelpText = "Report on the specified bank.")]
+    public class ReportOptions
+    {
+        [Option('f', "filename", Required = true, HelpText = "Input file to be processed.")]
+        public string FileName { get; set; }
+    }
+
+    [Verb("init", HelpText = "Initialize a new bank.")]
+    public class InitOptions
+    {
+        [Option('o', "output", Required = true, HelpText = "Output file.")]
+        public string OutputFileName { get; set; }
+    }
 
     class Program
     {
@@ -85,10 +51,12 @@ namespace k4tool
 
         static int Main(string[] args)
         {
-            var parserResult = Parser.Default.ParseArguments<ListOptions, DumpOptions>(args);
+            var parserResult = Parser.Default.ParseArguments<ListOptions, DumpOptions, ReportOptions, InitOptions>(args);
             parserResult.MapResult(
                 (ListOptions opts) => RunListAndReturnExitCode(opts),
                 (DumpOptions opts) => RunDumpAndReturnExitCode(opts),
+                (ReportOptions opts) => RunReportAndReturnExitCode(opts),
+                (InitOptions opts) => RunInitAndReturnExitCode(opts),
                 errs => 1
             );
 
@@ -145,8 +113,8 @@ namespace k4tool
                 byte[] singleData = new byte[SinglePatch.DataSize];
                 Buffer.BlockCopy(data, offset, singleData, 0, SinglePatch.DataSize);
                 SinglePatch single = new SinglePatch(singleData);
-                string name = GetPatchName(i);
-                sb.Append($"S{name}  {single.Common.Name}\n");
+                string name = PatchUtil.GetPatchName(i);
+                sb.Append($"S{name}  {single.Name}\n");
                 if ((i + 1) % 16 == 0) {
                     sb.Append("\n");
                 }
@@ -160,7 +128,7 @@ namespace k4tool
                 byte[] multiData = new byte[MultiPatch.DataSize];
                 Buffer.BlockCopy(data, offset, multiData, 0, MultiPatch.DataSize);
                 MultiPatch multi = new MultiPatch(multiData);
-                string name = GetPatchName(i);
+                string name = PatchUtil.GetPatchName(i);
                 sb.Append($"M{name}  {multi.Name}\n");
                 if ((i + 1) % 16 == 0) {
                     sb.Append("\n");
@@ -215,9 +183,9 @@ namespace k4tool
                 for (int bankNumber = 0; bankNumber < BankCount; bankNumber++)
                 {
                     SinglePatch[] patches = banks[bankNumber];
-                    string patchId = GetPatchName(bankNumber * patchNumber);
+                    string patchId = PatchUtil.GetPatchName(bankNumber * patchNumber);
                     SinglePatch single = patches[patchNumber];
-                    sb.Append(String.Format($"    <td>{single.Common.Name:8}</td>\n"));
+                    sb.Append(String.Format($"    <td>{single.Name:10}</td>\n"));
                 }
                 sb.Append("</tr>\n");
             }
@@ -234,72 +202,80 @@ namespace k4tool
             string fileName = opts.FileName;
             byte[] fileData = File.ReadAllBytes(fileName);
             Console.WriteLine($"SysEx file: '{fileName}' ({fileData.Length} bytes)");
-            //ProcessMessage(fileData, "list");
 
             return 0;
         }
 
-        private static void ProcessMessage(byte[] message, string command)
+        public static int RunReportAndReturnExitCode(ReportOptions opts)
         {
-            SystemExclusiveHeader header = new SystemExclusiveHeader(message);
-            // TODO: Check the SysEx file header for validity
+            string fileName = opts.FileName;
+            byte[] fileData = File.ReadAllBytes(fileName);
+            Console.WriteLine($"SysEx file: '{fileName}' ({fileData.Length} bytes)");
 
-            // Extract the patch bytes (discarding the SysEx header and terminator)
-            int dataLength = message.Length - SystemExclusiveHeader.DataSize - 1;
-            System.Console.WriteLine($"data length = {dataLength}");
-            byte[] data = new byte[dataLength];
-            Array.Copy(message, SystemExclusiveHeader.DataSize, data, 0, dataLength);
+            List<byte[]> messages = Util.SplitBytesByDelimiter(fileData, 0xf7);
+            Console.WriteLine($"Got {messages.Count} messages");
 
-            SystemExclusiveFunction function = (SystemExclusiveFunction)header.Function;
-            if (function != SystemExclusiveFunction.AllPatchDataDump)
+            foreach (byte[] message in messages)
             {
-                System.Console.WriteLine($"This is not an all patch data dump: {header.ToString()}");
-                // See section 5-11 in the Kawai K4 MIDI implementation manual
-
-                return;
+                ProcessMessage(message);
             }
 
-            // TODO: Split the data into chunks representing single, multi, drum, and effect data
-            Console.WriteLine(String.Format("Total data length = {0} bytes", data.Length));
-
-            int offset = 0;
-
-            Console.WriteLine(String.Format("Single patches (starting at offset {0}):", offset));
-            for (int i = 0; i < SinglePatchCount; i++)
-            {
-                Console.WriteLine(String.Format("offset = {0}:", offset));
-                byte[] singleData = new byte[SinglePatch.DataSize];
-                Buffer.BlockCopy(data, offset, singleData, 0, SinglePatch.DataSize);
-                SinglePatch single = new SinglePatch(singleData);
-                string name = GetPatchName(i);
-                System.Console.WriteLine($"S{name} {single.Common.Name}");
-                //System.Console.WriteLine(single.ToString());
-                //System.Console.WriteLine();
-                offset += SinglePatch.DataSize;
-            }
-
-            Console.WriteLine(String.Format("Multi patches (starting at offset {0}):", offset));
-            for (int i = 0; i < MultiPatchCount; i++)
-            {
-                Console.WriteLine(String.Format("offset = {0}:", offset));
-                byte[] multiData = new byte[MultiPatch.DataSize];
-                Buffer.BlockCopy(data, offset, multiData, 0, MultiPatch.DataSize);
-                MultiPatch multi = new MultiPatch(multiData);
-                string name = GetPatchName(i);
-                System.Console.WriteLine($"M{name} {multi.Name}");
-                //System.Console.WriteLine(multi.ToString());
-                //System.Console.WriteLine();
-                offset += MultiPatch.DataSize;
-            }
+            return 0;
         }
 
-        public static string GetPatchName(int p, int patchCount = 16)
+        public static int RunInitAndReturnExitCode(InitOptions opts)
         {
-        	int bankIndex = p / patchCount;
-	        char bankLetter = "ABCD"[bankIndex];
-	        int patchIndex = (p % patchCount) + 1;
+            List<SinglePatch> singlePatches = new List<SinglePatch>();
+            for (int i = 0; i < SinglePatchCount; i++)
+            {
+                SinglePatch single = new SinglePatch();
+                singlePatches.Add(single);
+            }
 
-	        return String.Format("{0}-{1,2}", bankLetter, patchIndex);
+            List<MultiPatch> multiPatches = new List<MultiPatch>();
+            for (int i = 0; i < MultiPatchCount; i++)
+            {
+                MultiPatch multi = new MultiPatch();
+                multiPatches.Add(multi);
+            }
+
+
+            return 0;
+        }
+
+        private static void ProcessMessage(byte[] message)
+        {
+            SystemExclusiveHeader header = new SystemExclusiveHeader(message);
+
+            Console.WriteLine("{0}", header);
+
+            Dictionary<SystemExclusiveFunction, string> functionNames = new Dictionary<SystemExclusiveFunction, string>()
+            {
+                { SystemExclusiveFunction.AllPatchDataDump, "All Patch Data Dump" },
+                { SystemExclusiveFunction.AllPatchDumpRequest, "All Patch Data Dump Request" },
+                { SystemExclusiveFunction.BlockPatchDataDump, "Block Patch Data Dump" },
+                { SystemExclusiveFunction.BlockPatchDumpRequest, "Block Patch Data Dump Request" },
+                { SystemExclusiveFunction.EditBufferDump, "Edit Buffer Dump" },
+                { SystemExclusiveFunction.OnePatchDataDump, "One Patch Data Dump" },
+                { SystemExclusiveFunction.OnePatchDumpRequest, "One Patch Data Dump Request" },
+                { SystemExclusiveFunction.ParameterSend, "Parameter Send" },
+                { SystemExclusiveFunction.ProgramChange, "Program Change" },
+                { SystemExclusiveFunction.WriteComplete, "Write Complete" },
+                { SystemExclusiveFunction.WriteError, "Write Error" },
+                { SystemExclusiveFunction.WriteErrorNoCard, "Write Error (No Card)" },
+                { SystemExclusiveFunction.WriteErrorProtect, "Write Error (Protect)" }
+            };
+
+            SystemExclusiveFunction function = (SystemExclusiveFunction)header.Function;
+            string functionName = "";
+            if (functionNames.TryGetValue(function, out functionName))
+            {
+                Console.WriteLine("Function = {0}", functionName);
+            }
+            else
+            {
+                Console.WriteLine("Unknown function: {0}", function);
+            }
         }
 
         public static string GetNoteName(int noteNumber) {
