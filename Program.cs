@@ -48,6 +48,7 @@ namespace k4tool
         public const int PatchesPerBank = 16;
 
         public const int MultiPatchCount = 64;   // same as single
+        public const int EffectPatchCount = 32;
 
         static int Main(string[] args)
         {
@@ -239,6 +240,44 @@ namespace k4tool
                 multiPatches.Add(multi);
             }
 
+            // Create a System Exclusive header for an "All Patch Data Dump"
+            SystemExclusiveHeader header = new SystemExclusiveHeader();
+
+            // TODO: Fill in the header fields
+            
+            List<byte> data = new List<byte>();
+            data.Add(SystemExclusiveHeader.Initiator);            
+            data.AddRange(header.ToData());
+
+            foreach (SinglePatch s in singlePatches)
+            {
+                data.AddRange(s.ToData());
+            }
+
+            foreach (MultiPatch m in multiPatches)
+            {
+                data.AddRange(m.ToData());
+            }
+
+            DrumPatch drums = new DrumPatch();
+            data.AddRange(drums.ToData());
+
+            List<EffectPatch> effectPatches = new List<EffectPatch>();
+            for (int i = 0; i < EffectPatchCount; i++)
+            {
+                EffectPatch effect = new EffectPatch();
+                effectPatches.Add(effect);
+            }
+
+            foreach (EffectPatch e in effectPatches)
+            {
+                data.AddRange(e.ToData());
+            }
+
+            data.Add(SystemExclusiveHeader.Terminator);
+
+            // Write the data to the output file
+            File.WriteAllBytes(opts.OutputFileName, data.ToArray());
 
             return 0;
         }
