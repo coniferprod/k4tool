@@ -242,23 +242,33 @@ namespace k4tool
 
             // Create a System Exclusive header for an "All Patch Data Dump"
             SystemExclusiveHeader header = new SystemExclusiveHeader();
-
-            // TODO: Fill in the header fields
+            header.ManufacturerID = 0x40;  // Kawai
+            header.Channel = 0;  // MIDI channel 1
+            header.Function = (byte)SystemExclusiveFunction.AllPatchDataDump;
+            header.Group = 0;  // synthesizer group
+            header.MachineID = 0x04;  // K4/K4r ID
+            header.Substatus1 = 0;  // INT
+            header.Substatus2 = 0;  // always zero
             
             List<byte> data = new List<byte>();
             data.Add(SystemExclusiveHeader.Initiator);            
             data.AddRange(header.ToData());
 
+            // Single patches: 64 * 131 = 8384 bytes of data
             foreach (SinglePatch s in singlePatches)
             {
                 data.AddRange(s.ToData());
             }
 
+            // Multi patches: 64 * 77 = 4928 bytes of data
+            // The K4 MIDI spec has an error in the "All Patch Data" description;
+            // multi patches are listed as 87, not 77 bytes
             foreach (MultiPatch m in multiPatches)
             {
                 data.AddRange(m.ToData());
             }
 
+            // Drums: 682 bytes of data
             DrumPatch drums = new DrumPatch();
             data.AddRange(drums.ToData());
 
@@ -269,12 +279,22 @@ namespace k4tool
                 effectPatches.Add(effect);
             }
 
+            // Effect patches: 32 * 35 = 1120 bytes of data
             foreach (EffectPatch e in effectPatches)
             {
                 data.AddRange(e.ToData());
             }
 
             data.Add(SystemExclusiveHeader.Terminator);
+
+            // SysEx initiator:    1 
+            // SysEx header:       7
+            // Single patches:  8384
+            // Multi patches:   4928
+            // Drum settings:    682
+            // Effect patches:  1120
+            // SysEx terminator:   1
+            // Total bytes:    15123
 
             // Write the data to the output file
             File.WriteAllBytes(opts.OutputFileName, data.ToArray());
