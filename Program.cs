@@ -8,39 +8,8 @@ using CommandLine;
 using KSynthLib.Common;
 using KSynthLib.K4;
 
-namespace k4tool
+namespace K4Tool
 {
-    [Verb("list", HelpText = "List contents of bank.")]
-    public class ListOptions
-    {
-        [Option('f', "filename", Required = true, HelpText = "Input file to be processed.")]
-        public string FileName { get; set; }
-
-        [Option('o', "output", Required = true, HelpText = "Output file format ('text' or 'html')")]
-        public string Output { get; set; }
-    }
-
-    [Verb("dump", HelpText = "Dump contents of bank.")]
-    public class DumpOptions
-    {
-        [Option('f', "filename", Required = true, HelpText = "Input file to be processed.")]
-        public string FileName { get; set; }
-    }
-
-    [Verb("report", HelpText = "Report on the specified bank.")]
-    public class ReportOptions
-    {
-        [Option('f', "filename", Required = true, HelpText = "Input file to be processed.")]
-        public string FileName { get; set; }
-    }
-
-    [Verb("init", HelpText = "Initialize a new bank.")]
-    public class InitOptions
-    {
-        [Option('o', "output", Required = true, HelpText = "Output file.")]
-        public string OutputFileName { get; set; }
-    }
-
     class Program
     {
         public const int SinglePatchCount = 64;  // banks A, B, C and D with 16 patches each
@@ -96,9 +65,9 @@ namespace k4tool
                 Console.WriteLine(MakeHtmlList(data, namePart));
                 return 0;
             }
-            else 
+            else
             {
-                Console.WriteLine(String.Format($"Unknown output format: '{outputFormat}'"));
+                Console.WriteLine($"Unknown output format: '{outputFormat}'");
                 return -1;
             }
         }
@@ -169,7 +138,7 @@ namespace k4tool
 
             sb.Append("<table>\n");
             sb.Append(String.Format("<caption>{0}</caption>\n", title));
-            sb.Append("<tr>\n    <th>SINGLE</th>\n");            
+            sb.Append("<tr>\n    <th>SINGLE</th>\n");
             for (int bankNumber = 0; bankNumber < BankCount; bankNumber++)
             {
                 char bankLetter = "ABCD"[bankNumber];
@@ -249,9 +218,9 @@ namespace k4tool
             header.MachineID = 0x04;  // K4/K4r ID
             header.Substatus1 = 0;  // INT
             header.Substatus2 = 0;  // always zero
-            
+
             List<byte> data = new List<byte>();
-            data.Add(SystemExclusiveHeader.Initiator);            
+            data.Add(SystemExclusiveHeader.Initiator);
             data.AddRange(header.ToData());
 
             // Single patches: 64 * 131 = 8384 bytes of data
@@ -287,7 +256,7 @@ namespace k4tool
 
             data.Add(SystemExclusiveHeader.Terminator);
 
-            // SysEx initiator:    1 
+            // SysEx initiator:    1
             // SysEx header:       7
             // Single patches:  8384
             // Multi patches:   4928
@@ -306,7 +275,7 @@ namespace k4tool
         {
             SystemExclusiveHeader header = new SystemExclusiveHeader(message);
 
-            Console.WriteLine("{0}", header);
+            Console.WriteLine(header);
 
             Dictionary<SystemExclusiveFunction, string> functionNames = new Dictionary<SystemExclusiveFunction, string>()
             {
@@ -329,11 +298,11 @@ namespace k4tool
             string functionName = "";
             if (functionNames.TryGetValue(function, out functionName))
             {
-                Console.WriteLine("Function = {0}", functionName);
+                Console.WriteLine($"Function = {functionName}");
             }
             else
             {
-                Console.WriteLine("Unknown function: {0}", function);
+                Console.WriteLine($"Unknown function: {function}");
             }
         }
 
