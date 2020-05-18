@@ -8,6 +8,8 @@ using CommandLine;
 using KSynthLib.Common;
 using KSynthLib.K4;
 
+using Newtonsoft.Json;
+
 namespace K4Tool
 {
     class Program
@@ -222,6 +224,14 @@ namespace K4Tool
             byte[] fileData = File.ReadAllBytes(fileName);
             Console.WriteLine($"SysEx file: '{fileName}' ({fileData.Length} bytes)");
 
+            Bank bank = new Bank(fileData);
+            Console.WriteLine($"Bank: {bank.Singles.Count} single patches, {bank.Multis.Count} multi patches");
+            string json = JsonConvert.SerializeObject(
+                bank,
+                Formatting.Indented,
+                new Newtonsoft.Json.Converters.StringEnumConverter()
+            );
+            Console.WriteLine(json);
             return 0;
         }
 
