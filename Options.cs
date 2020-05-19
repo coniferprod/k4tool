@@ -36,4 +36,20 @@ namespace K4Tool
         [Option('o', "output", Required = true, HelpText = "Output file.")]
         public string OutputFileName { get; set; }
     }
+
+    [Verb("generate", HelpText = "Generate a new patch.")]
+    public class GenerateOptions
+    {
+        [Option('t', "type", Required = true, HelpText = "Type of patch (currently: single).")]
+        public string PatchType { get; set; }
+
+        [Option('n', "name", Required = true, HelpText = "Name of patch (max 10 characters).")]
+        public string PatchName { get; set; }
+
+        [Option('p', "patch", Required = true, HelpText = "Patch bank and number (for example, A-1).")]
+        public string PatchNumber { get; set; }
+
+        [Option('o', "output", Required = true, HelpText = "Output file.")]
+        public string OutputFileName { get; set; }
+    }
 }

@@ -23,12 +23,13 @@ namespace K4Tool
 
         static int Main(string[] args)
         {
-            var parserResult = Parser.Default.ParseArguments<ListOptions, DumpOptions, ReportOptions, InitOptions>(args);
+            var parserResult = Parser.Default.ParseArguments<ListOptions, DumpOptions, ReportOptions, InitOptions, GenerateOptions>(args);
             parserResult.MapResult(
                 (ListOptions opts) => RunListAndReturnExitCode(opts),
                 (DumpOptions opts) => RunDumpAndReturnExitCode(opts),
                 (ReportOptions opts) => RunReportAndReturnExitCode(opts),
                 (InitOptions opts) => RunInitAndReturnExitCode(opts),
+                (GenerateOptions opts) => RunGenerateAndReturnExitCode(opts),
                 errs => 1
             );
 
@@ -330,6 +331,49 @@ namespace K4Tool
             return 0;
         }
 
+        public static int RunGenerateAndReturnExitCode(GenerateOptions opts)
+        {
+            if (!opts.PatchType.Equals("single"))
+            {
+                Console.WriteLine($"Sorry, I don't know how to generate {opts.PatchType} patches.");
+                return -1;
+            }
+
+            Console.WriteLine("OK, you want to generate a single patch.");
+            Console.WriteLine($"And you want to call it '{opts.PatchName}'.");
+
+            SinglePatch singlePatch = new SinglePatch();
+
+            // Override the patch defaults
+            singlePatch.Name = opts.PatchName;
+            singlePatch.Volume = 100;
+            singlePatch.Effect = 1;
+
+            List<byte> data = new List<byte>();
+
+            SystemExclusiveHeader header = new SystemExclusiveHeader();
+            header.ManufacturerID = 0x40;  // Kawai
+            header.Channel = 0; // MIDI channel 1
+            header.Function = (byte)SystemExclusiveFunction.OnePatchDataDump;
+            header.Group = 0x00; // synth group
+            header.MachineID = 0x04; // K4/K4r
+            header.Substatus1 = 0x00;  // INT
+            header.Substatus2 = (byte)GetPatchNumber(opts.PatchNumber);
+
+            data.Add(SystemExclusiveHeader.Initiator);
+            data.AddRange(header.ToData());
+            data.AddRange(singlePatch.ToData());
+            data.Add(SystemExclusiveHeader.Terminator);
+
+            Console.WriteLine("Generated single patch as a SysEx message:");
+            Console.WriteLine(Util.HexDump(data.ToArray()));
+
+            // Write the data to the output file
+            File.WriteAllBytes(opts.OutputFileName, data.ToArray());
+
+            return 0;
+        }
+
         private static void ProcessMessage(byte[] message)
         {
             SystemExclusiveHeader header = new SystemExclusiveHeader(message);
@@ -371,5 +415,30 @@ namespace K4Tool
             string name = notes[noteNumber % 12];
             return name + octave;
         }
+
+        public static int GetPatchNumber(string s)
+        {
+            string us = s.ToUpper();
+            char[] bankNames = new char[] { 'A', 'B', 'C', 'D' };
+            int bankIndex = Array.IndexOf(bankNames, us[0]);
+            if (bankIndex < 0)
+            {
+                return 0;
+            }
+
+            int number = 0;
+            string ns = us.Substring(1);  // take the rest after the bank letter
+            try
+            {
+                number = Int32.Parse(ns) - 1;  // bring to range 0...15
+            }
+            catch (FormatException)
+            {
+                Console.WriteLine($"bad patch number: '{s}'");
+            }
+
+            return bankIndex * 16 + number;
+        }
+
     }
 }
