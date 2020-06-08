@@ -3,12 +3,12 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <Version>0.3.0</Version>
+    <Version>0.4.0</Version>
     <Authors>Jere Käpyaho</Authors>
     <Company>Conifer Productions Oy</Company>
     <Product>K4Tool</Product>
     <PackageId>K4Tool</PackageId>
-    <AssemblyVersion>0.3.0</AssemblyVersion>
+    <AssemblyVersion>0.4.0</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>

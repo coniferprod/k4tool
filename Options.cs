@@ -46,10 +46,28 @@ namespace K4Tool
         [Option('n', "name", Required = true, HelpText = "Name of patch (max 10 characters).")]
         public string PatchName { get; set; }
 
-        [Option('p', "patch", Required = true, HelpText = "Patch bank and number (for example, A-1).")]
+        [Option('p', "patch", Required = true, HelpText = "Patch bank and number (for example, A1 or D16).")]
         public string PatchNumber { get; set; }
 
         [Option('o', "output", Required = true, HelpText = "Output file.")]
         public string OutputFileName { get; set; }
+    }
+
+    [Verb("extract", HelpText = "Extract patch from bank.")]
+    public class ExtractOptions {
+        [Option('i', "input", Required = true, HelpText = "Input file to extract from. Must be a bank file.")]
+        public string InputFileName { get; set; }
+
+        [Option('o', "output", Required = true, HelpText = "Output file to extract to.")]
+        public string OutputFileName { get; set; }
+
+        [Option('t', "type", Required = true, HelpText = "Type of patch (single, multi, drum, effect).")]
+        public string PatchType { get; set; }
+
+        [Option('s', "source", Required = true, HelpText = "Source patch bank and number (for example, A1 or D16).")]
+        public string SourcePatchNumber { get; set; }
+
+        [Option('d', "destination", Required = true, HelpText = "Destination patch bank and number (for example, A1 or D16).")]
+        public string DestinationPatchNumber { get; set; }
     }
 }

@@ -23,13 +23,20 @@ namespace K4Tool
 
         static int Main(string[] args)
         {
-            var parserResult = Parser.Default.ParseArguments<ListOptions, DumpOptions, ReportOptions, InitOptions, GenerateOptions>(args);
+            var parserResult = Parser.Default.ParseArguments<
+                ListOptions,
+                DumpOptions,
+                ReportOptions,
+                InitOptions,
+                GenerateOptions,
+                ExtractOptions>(args);
             parserResult.MapResult(
                 (ListOptions opts) => RunListAndReturnExitCode(opts),
                 (DumpOptions opts) => RunDumpAndReturnExitCode(opts),
                 (ReportOptions opts) => RunReportAndReturnExitCode(opts),
                 (InitOptions opts) => RunInitAndReturnExitCode(opts),
                 (GenerateOptions opts) => RunGenerateAndReturnExitCode(opts),
+                (ExtractOptions opts) => RunExtractAndReturnExitCode(opts),
                 errs => 1
             );
 
@@ -349,27 +356,59 @@ namespace K4Tool
             singlePatch.Volume = 100;
             singlePatch.Effect = 1;
 
+            byte[] data = GenerateSystemExclusiveMessage(singlePatch, GetPatchNumber(opts.PatchNumber));
+
+            Console.WriteLine("Generated single patch as a SysEx message:");
+            Console.WriteLine(Util.HexDump(data));
+
+            // Write the data to the output file
+            File.WriteAllBytes(opts.OutputFileName, data);
+
+            return 0;
+        }
+
+        private static byte[] GenerateSystemExclusiveMessage(SinglePatch patch, int patchNumber, int channel = 0)
+        {
             List<byte> data = new List<byte>();
 
             SystemExclusiveHeader header = new SystemExclusiveHeader();
             header.ManufacturerID = 0x40;  // Kawai
-            header.Channel = 0; // MIDI channel 1
+            header.Channel = (byte)channel;
             header.Function = (byte)SystemExclusiveFunction.OnePatchDataDump;
             header.Group = 0x00; // synth group
             header.MachineID = 0x04; // K4/K4r
             header.Substatus1 = 0x00;  // INT
-            header.Substatus2 = (byte)GetPatchNumber(opts.PatchNumber);
+            header.Substatus2 = (byte)patchNumber;
 
             data.Add(SystemExclusiveHeader.Initiator);
             data.AddRange(header.ToData());
-            data.AddRange(singlePatch.ToData());
+            data.AddRange(patch.ToData());
             data.Add(SystemExclusiveHeader.Terminator);
 
-            Console.WriteLine("Generated single patch as a SysEx message:");
-            Console.WriteLine(Util.HexDump(data.ToArray()));
+            return data.ToArray();
+        }
+
+        public static int RunExtractAndReturnExitCode(ExtractOptions opts)
+        {
+            if (!opts.PatchType.Equals("single"))
+            {
+                Console.WriteLine($"Sorry, I don't know how to extract {opts.PatchType} patches.");
+                return -1;
+            }
+
+            string inputFileName = opts.InputFileName;
+            byte[] fileData = File.ReadAllBytes(inputFileName);
+
+            Bank bank = new Bank(fileData);
+            int sourcePatchNumber = GetPatchNumber(opts.SourcePatchNumber);
+
+            SinglePatch patch = bank.Singles[sourcePatchNumber];
+
+            int destinationPatchNumber = GetPatchNumber(opts.DestinationPatchNumber);
+            byte[] patchData = GenerateSystemExclusiveMessage(patch, destinationPatchNumber);
 
             // Write the data to the output file
-            File.WriteAllBytes(opts.OutputFileName, data.ToArray());
+            File.WriteAllBytes(opts.OutputFileName, patchData);
 
             return 0;
         }
