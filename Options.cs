@@ -70,4 +70,16 @@ namespace K4Tool
         [Option('d', "destination", Required = true, HelpText = "Destination patch bank and number (for example, A1 or D16).")]
         public string DestinationPatchNumber { get; set; }
     }
+
+    [Verb("inject", HelpText = "Inject patch into bank.")]
+    public class InjectOptions {
+        [Option('i', "input", Required = true, HelpText = "Patch file whose contents to inject. Must be a single, multi, drum, or effect.")]
+        public string InputFileName { get; set; }
+
+        [Option('t', "target", Required = true, HelpText = "Target bank to inject to.")]
+        public string TargetFileName { get; set; }
+
+        [Option('d', "destination", Required = false, HelpText = "Destination patch bank and number (for example, A1 or D16). If omitted, the bank and number in the patch file are used, if applicable.")]
+        public string DestinationPatchNumber { get; set; }
+    }
 }

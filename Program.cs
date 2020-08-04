@@ -29,7 +29,8 @@ namespace K4Tool
                 ReportOptions,
                 InitOptions,
                 GenerateOptions,
-                ExtractOptions>(args);
+                ExtractOptions,
+                InjectOptions>(args);
             parserResult.MapResult(
                 (ListOptions opts) => RunListAndReturnExitCode(opts),
                 (DumpOptions opts) => RunDumpAndReturnExitCode(opts),
@@ -37,6 +38,7 @@ namespace K4Tool
                 (InitOptions opts) => RunInitAndReturnExitCode(opts),
                 (GenerateOptions opts) => RunGenerateAndReturnExitCode(opts),
                 (ExtractOptions opts) => RunExtractAndReturnExitCode(opts),
+                (InjectOptions opts) => RunInjectAndReturnExitCode(opts),
                 errs => 1
             );
 
@@ -409,6 +411,16 @@ namespace K4Tool
 
             // Write the data to the output file
             File.WriteAllBytes(opts.OutputFileName, patchData);
+
+            return 0;
+        }
+
+        public static int RunInjectAndReturnExitCode(InjectOptions options)
+        {
+            string inputFileName = options.InputFileName;
+            byte[] fileData = File.ReadAllBytes(inputFileName);
+
+            // TODO: identify the type of the input file
 
             return 0;
         }
