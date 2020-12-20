@@ -63,8 +63,7 @@ namespace K4Tool
             Array.Copy(message, SystemExclusiveHeader.DataSize, data, 0, dataLength);
 
             // TODO: Split the data into chunks representing single, multi, drum, and effect data
-            //Console.WriteLine(String.Format("Total data length = {0} bytes", data.Length));
-            Console.WriteLine($"Total data length (with/without header): {message.Length}/{data.Length} bytes");
+            //Console.WriteLine($"Total data length (with/without header): {message.Length}/{data.Length} bytes");
 
             string outputFormat = opts.Output;
             if (outputFormat.Equals("text"))
@@ -86,7 +85,7 @@ namespace K4Tool
 
         private static string MakeTextList(byte[] data, string title)
         {
-            Console.WriteLine($"MakeTextList: data length = {data.Length} bytes");
+            //Console.WriteLine($"MakeTextList: data length = {data.Length} bytes");
 
             StringBuilder sb = new StringBuilder();
             sb.Append("SINGLE patches:\n");
@@ -107,7 +106,6 @@ namespace K4Tool
             }
             sb.Append("\n");
 
-/*
             sb.Append("MULTI patches:\n");
             for (int i = 0; i < MultiPatchCount; i++)
             {
@@ -122,8 +120,7 @@ namespace K4Tool
                 }
                 offset += MultiPatch.DataSize;
             }
-*/
-            offset += MultiPatchCount * MultiPatch.DataSize;
+            //offset += MultiPatchCount * MultiPatch.DataSize;
 
 /*
             sb.Append("\n");
@@ -143,38 +140,21 @@ namespace K4Tool
             {
                 byte[] effectData = new byte[EffectPatch.DataSize];
                 Buffer.BlockCopy(data, offset, effectData, 0, EffectPatch.DataSize);
-                Console.WriteLine($"Constructing drum patch from {effectData.Length} bytes of data starting at {offset}");
+                //Console.WriteLine($"Constructing effect patch from {effectData.Length} bytes of data starting at {offset}");
                 EffectPatch effectPatch = new EffectPatch(effectData);
+
+                sb.Append($"E-{i+1,2}  {effectPatch}");
                 offset += EffectPatch.DataSize;
             }
 
             return sb.ToString();
         }
 
-        public string[] EffectNames = {
-            "Reverb 1",
-            "Reverb 2",
-            "Reverb 3",
-            "Reverb 4",
-            "Gate Reverb",
-            "Reverse Gate",
-            "Normal Delay",
-            "Stereo Panpot Delay",
-            "Chorus",
-            "Overdrive + Flanger",
-            "Overdrive + Normal Delay",
-            "Overdrive + Reverb",
-            "Normal Delay + Normal Delay",
-            "Normal Delay + Stereo Pan Delay",
-            "Chorus + Normal Delay",
-            "Chorus + Stereo Pan Delay"
-        };
-
         private static string MakeHtmlList(byte[] data, string title)
         {
             StringBuilder sb = new StringBuilder();
 
-            sb.Append("<tt><table>\n");
+            sb.Append("<table>\n");
 
             SinglePatch[][] banks = new SinglePatch[BankCount][]; //BankCount, PatchesPerBank];
 
@@ -220,10 +200,9 @@ namespace K4Tool
                 }
                 sb.Append("</tr>\n");
             }
+            sb.Append("</table>\n");
 
             // TODO: Add multi patches
-
-            sb.Append("</table></tt>\n");
 
             return sb.ToString();
         }
