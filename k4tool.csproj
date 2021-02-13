@@ -8,12 +8,12 @@
     <Company>Conifer Productions Oy</Company>
     <Product>K4Tool</Product>
     <PackageId>K4Tool</PackageId>
-    <AssemblyVersion>0.4.3.0</AssemblyVersion>
+    <AssemblyVersion>0.4.3.1</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.7.0" />
-    <PackageReference Include="KSynthLib" Version="0.6.3" />
+    <PackageReference Include="KSynthLib" Version="0.6.8" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
 
