@@ -14,6 +14,15 @@ tool implement them, use the `--` argument, like this:
 This section contains command-line examples of various k4tool commands.
 You can use either the long or short format of the argument.
 
+### List the patches in a bank
+
+The `list` command produces a listing of all the patches in a given bank.
+The input file must be a complete System Exclusive bank file of 15,123 bytes.
+For example, to get a text listing of the patches in the bank file `A401.SYX`,
+printed to the console, you would say:
+
+    dotnet run -- list --filename A401.SYX --output text
+
 ### Extract a patch from a bank
 
 You can use the `extract` command to extract a patch from a bank into a separate
