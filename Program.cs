@@ -256,6 +256,8 @@ namespace K4Tool
 
             sb.Append("</table>\n");
 
+            patchSize = DrumPatch.DataSize;
+
             // TODO: List drum
 // Crash when setting tune of drum note (value out of range)
 /*
