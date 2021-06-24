@@ -82,4 +82,9 @@ namespace K4Tool
         [Option('d', "destination", Required = false, HelpText = "Destination patch bank and number (for example, A1 or D16). If omitted, the bank and number in the patch file are used, if applicable.")]
         public string DestinationPatchNumber { get; set; }
     }
+
+    [Verb("wave", HelpText = "Show wave list.")]
+    public class WaveOptions {
+
+    }
 }

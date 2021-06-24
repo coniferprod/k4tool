@@ -30,7 +30,8 @@ namespace K4Tool
                 InitOptions,
                 GenerateOptions,
                 ExtractOptions,
-                InjectOptions>(args);
+                InjectOptions,
+                WaveOptions>(args);
             parserResult.MapResult(
                 (ListOptions opts) => RunListAndReturnExitCode(opts),
                 (DumpOptions opts) => RunDumpAndReturnExitCode(opts),
@@ -39,6 +40,7 @@ namespace K4Tool
                 (GenerateOptions opts) => RunGenerateAndReturnExitCode(opts),
                 (ExtractOptions opts) => RunExtractAndReturnExitCode(opts),
                 (InjectOptions opts) => RunInjectAndReturnExitCode(opts),
+                (WaveOptions opts) => RunWaveAndReturnExitCode(opts),
                 errs => 1
             );
 
@@ -211,10 +213,10 @@ namespace K4Tool
         {
             string fileName = opts.FileName;
             byte[] fileData = File.ReadAllBytes(fileName);
-            Console.WriteLine($"SysEx file: '{fileName}' ({fileData.Length} bytes)");
+            //Console.WriteLine($"SysEx file: '{fileName}' ({fileData.Length} bytes)");
 
             Bank bank = new Bank(fileData);
-            Console.WriteLine($"Bank: {bank.Singles.Count} single patches, {bank.Multis.Count} multi patches");
+            //Console.WriteLine($"Bank: {bank.Singles.Count} single patches, {bank.Multis.Count} multi patches");
             string json = JsonConvert.SerializeObject(
                 bank,
                 Formatting.Indented,
@@ -437,6 +439,16 @@ namespace K4Tool
             {
                 Console.WriteLine($"Unknown function: {function}");
             }
+        }
+
+        public static int RunWaveAndReturnExitCode(WaveOptions opts)
+        {
+            for (int i = 1; i <= K4Tool.Wave.WaveCount; i++)
+            {
+                Console.WriteLine($"{i,3} {K4Tool.Wave.Names[i]}");
+            }
+
+            return 0;
         }
 
         public static string GetNoteName(int noteNumber) {
