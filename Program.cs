@@ -122,7 +122,6 @@ namespace K4Tool
                 }
                 offset += MultiPatch.DataSize;
             }
-            //offset += MultiPatchCount * MultiPatch.DataSize;
 
 /*
             sb.Append("\n");
@@ -131,7 +130,6 @@ namespace K4Tool
             Buffer.BlockCopy(data, offset, drumData, 0, DrumPatch.DataSize);
             Console.WriteLine($"Constructing drum patch from {drumData.Length} bytes of data starting at {offset}");
             DrumPatch drumPatch = new DrumPatch(drumData);
-            offset += DrumPatch.DataSize;
 */
 
             offset += DrumPatch.DataSize;
@@ -154,33 +152,40 @@ namespace K4Tool
 
         private static string MakeHtmlList(byte[] data, string title)
         {
+            string GetNoteName(int noteNumber) {
+                string[] notes = new string[] { "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B" };
+                int octave = noteNumber / 12 + 1;
+                string name = notes[noteNumber % 12];
+                return name + octave;
+            }
+
             StringBuilder sb = new StringBuilder();
 
-            sb.Append("<table>\n");
+            sb.Append(String.Format("<h1>{0}</h1>\n", title));
 
-            SinglePatch[][] banks = new SinglePatch[BankCount][]; //BankCount, PatchesPerBank];
+            SinglePatch[][] singleBanks = new SinglePatch[BankCount][]; //BankCount, PatchesPerBank];
 
             int offset = 0;
+            int patchSize = SinglePatch.DataSize;
 
             for (int bankNumber = 0; bankNumber < BankCount; bankNumber++)
             {
                 SinglePatch[] patches = new SinglePatch[PatchesPerBank];
                 for (int patchNumber = 0; patchNumber < PatchesPerBank; patchNumber++)
                 {
-                    byte[] singleData = new byte[SinglePatch.DataSize];
-                    Buffer.BlockCopy(data, offset, singleData, 0, SinglePatch.DataSize);
+                    byte[] singleData = new byte[patchSize];
+                    Buffer.BlockCopy(data, offset, singleData, 0, patchSize);
                     SinglePatch single = new SinglePatch(singleData);
                     patches[patchNumber] = single;
-                    offset += SinglePatch.DataSize;
+                    offset += patchSize;
                 }
 
-                banks[bankNumber] = patches;
+                singleBanks[bankNumber] = patches;
             }
 
-            // now we should have all the patches collected in four lists of 16 each
+            // Now we should have all the single patches collected in four lists of 16 each
 
             sb.Append("<table>\n");
-            sb.Append(String.Format("<caption>{0}</caption>\n", title));
             sb.Append("<tr>\n    <th>SINGLE</th>\n");
             for (int bankNumber = 0; bankNumber < BankCount; bankNumber++)
             {
@@ -195,7 +200,7 @@ namespace K4Tool
                 sb.Append(String.Format("    <td>{0,2}</td>\n", patchNumber + 1));
                 for (int bankNumber = 0; bankNumber < BankCount; bankNumber++)
                 {
-                    SinglePatch[] patches = banks[bankNumber];
+                    SinglePatch[] patches = singleBanks[bankNumber];
                     string patchId = PatchUtil.GetPatchName(bankNumber * patchNumber);
                     SinglePatch single = patches[patchNumber];
                     sb.Append(String.Format($"    <td>{single.Name:10}</td>\n"));
@@ -204,7 +209,95 @@ namespace K4Tool
             }
             sb.Append("</table>\n");
 
-            // TODO: Add multi patches
+            //
+            // Multi patches
+            //
+
+            patchSize = MultiPatch.DataSize;
+
+            MultiPatch[][] multiBanks = new MultiPatch[BankCount][];
+
+            for (int bankNumber = 0; bankNumber < BankCount; bankNumber++)
+            {
+                MultiPatch[] patches = new MultiPatch[PatchesPerBank];
+                for (int patchNumber = 0; patchNumber < PatchesPerBank; patchNumber++)
+                {
+                    byte[] multiData = new byte[patchSize];
+                    Buffer.BlockCopy(data, offset, multiData, 0, patchSize);
+                    MultiPatch multi = new MultiPatch(multiData);
+                    patches[patchNumber] = multi;
+                    offset += patchSize;
+                }
+
+                multiBanks[bankNumber] = patches;
+            }
+
+            sb.Append("<table>\n");
+            sb.Append("<tr>\n    <th>MULTI</th>\n");
+            for (int bankNumber = 0; bankNumber < BankCount; bankNumber++)
+            {
+                char bankLetter = "ABCD"[bankNumber];
+                sb.Append(String.Format("    <th>{0}</th>\n", bankLetter));
+            }
+            sb.Append("</tr>\n");
+
+            for (int patchNumber = 0; patchNumber < PatchesPerBank; patchNumber++)
+            {
+                sb.Append("<tr>\n");
+                sb.Append(String.Format("    <td>{0,2}</td>\n", patchNumber + 1));
+                for (int bankNumber = 0; bankNumber < BankCount; bankNumber++)
+                {
+                    MultiPatch[] patches = multiBanks[bankNumber];
+                    string patchId = PatchUtil.GetPatchName(bankNumber * patchNumber);
+                    MultiPatch single = patches[patchNumber];
+                    sb.Append(String.Format($"    <td>{single.Name:10}</td>\n"));
+                }
+                sb.Append("</tr>\n");
+            }
+
+            sb.Append("</table>\n");
+
+            patchSize = DrumPatch.DataSize;
+
+            // TODO: List drum
+// Crash when setting tune of drum note (value out of range)
+/*
+            sb.Append("<table>\n");
+            sb.Append("<caption>DRUM</caption>\n");
+            sb.Append("<tr><th>Note</th><th>Parameters</th></tr>\n");
+
+            patchSize = DrumPatch.DataSize;
+            byte[] drumData = new byte[patchSize];
+            Buffer.BlockCopy(data, offset, drumData, 0, patchSize);
+            var drum = new DrumPatch(drumData);
+            for (int i = 0; i < 128; i++)
+            {
+                var note = drum.Notes[i];
+                sb.Append($"<tr><td>E-{GetNoteName(i)}</td><td>{note}</td></tr>\n");
+            }
+
+            sb.Append("</table>\n");
+*/
+            offset += patchSize;
+
+            sb.Append("<table>\n");
+            sb.Append("<caption>EFFECT</caption>\n");
+            sb.Append("<tr><th>#</th><th>Type and parameters</th></tr>\n");
+
+            patchSize = EffectPatch.DataSize;
+
+            for (int i = 0; i < 32; i++)
+            {
+                byte[] effectData = new byte[patchSize];
+                Buffer.BlockCopy(data, offset, effectData, 0, patchSize);
+                //Console.WriteLine($"Constructing effect patch from {effectData.Length} bytes of data starting at {offset}");
+                EffectPatch effectPatch = new EffectPatch(effectData);
+
+                sb.Append($"<tr><td>E-{i+1,2}</td><td>{effectPatch}</td></tr>\n");
+                offset += patchSize;
+            }
+
+            sb.Append("</table>\n");
 
             return sb.ToString();
         }
@@ -339,7 +432,7 @@ namespace K4Tool
             singlePatch.Volume = 100;
             singlePatch.Effect = 1;
 
-            byte[] data = GenerateSystemExclusiveMessage(singlePatch, GetPatchNumber(opts.PatchNumber));
+            byte[] data = GenerateSystemExclusiveMessage(singlePatch, PatchUtil.GetPatchNumber(opts.PatchNumber));
 
             Console.WriteLine("Generated single patch as a SysEx message:");
             Console.WriteLine(Util.HexDump(data));
@@ -383,11 +476,11 @@ namespace K4Tool
             byte[] fileData = File.ReadAllBytes(inputFileName);
 
             Bank bank = new Bank(fileData);
-            int sourcePatchNumber = GetPatchNumber(opts.SourcePatchNumber);
+            int sourcePatchNumber = PatchUtil.GetPatchNumber(opts.SourcePatchNumber);
 
             SinglePatch patch = bank.Singles[sourcePatchNumber];
 
-            int destinationPatchNumber = GetPatchNumber(opts.DestinationPatchNumber);
+            int destinationPatchNumber = PatchUtil.GetPatchNumber(opts.DestinationPatchNumber);
             byte[] patchData = GenerateSystemExclusiveMessage(patch, destinationPatchNumber);
 
             // Write the data to the output file
@@ -481,6 +574,5 @@ namespace K4Tool
 
             return bankIndex * 16 + number;
         }
-
     }
 }
