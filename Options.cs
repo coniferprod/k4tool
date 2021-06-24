@@ -87,4 +87,10 @@ namespace K4Tool
     public class WaveOptions {
 
     }
+
+    [Verb("ui", HelpText = "Start the terminal user interface.")]
+    public class UiOptions {
+
+    }
+
 }

@@ -31,7 +31,8 @@ namespace K4Tool
                 GenerateOptions,
                 ExtractOptions,
                 InjectOptions,
-                WaveOptions>(args);
+                WaveOptions,
+                UiOptions>(args);
             parserResult.MapResult(
                 (ListOptions opts) => RunListAndReturnExitCode(opts),
                 (DumpOptions opts) => RunDumpAndReturnExitCode(opts),
@@ -41,6 +42,7 @@ namespace K4Tool
                 (ExtractOptions opts) => RunExtractAndReturnExitCode(opts),
                 (InjectOptions opts) => RunInjectAndReturnExitCode(opts),
                 (WaveOptions opts) => RunWaveAndReturnExitCode(opts),
+                (UiOptions opts) => RunUiAndReturnExitCode(opts),
                 errs => 1
             );
 
@@ -540,6 +542,13 @@ namespace K4Tool
             {
                 Console.WriteLine($"{i,3} {K4Tool.Wave.Names[i]}");
             }
+
+            return 0;
+        }
+
+        public static int RunUiAndReturnExitCode(UiOptions opts)
+        {
+            var ui = new Ui();
 
             return 0;
         }
