@@ -3,7 +3,7 @@ using CommandLine;
 
 namespace K4Tool
 {
-    [Verb("list", HelpText = "List contents of bank.")]
+    [Verb("list", HelpText = "List the contents of a bank.")]
     public class ListOptions
     {
         [Option('f', "filename", Required = true, HelpText = "Input file to be processed.")]
@@ -13,7 +13,7 @@ namespace K4Tool
         public string Output { get; set; }
     }
 
-    [Verb("dump", HelpText = "Dump contents of bank.")]
+    [Verb("dump", HelpText = "Dump the contents of a bank.")]
     public class DumpOptions
     {
         [Option('f', "filename", Required = true, HelpText = "Input file to be processed.")]
@@ -21,13 +21,6 @@ namespace K4Tool
 
         [Option('o', "output", Required = true, HelpText = "Output file format ('text' or 'json')")]
         public string Output { get; set; }
-    }
-
-    [Verb("report", HelpText = "Report on the specified bank.")]
-    public class ReportOptions
-    {
-        [Option('f', "filename", Required = true, HelpText = "Input file to be processed.")]
-        public string FileName { get; set; }
     }
 
     [Verb("init", HelpText = "Initialize a new bank.")]

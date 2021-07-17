@@ -23,6 +23,15 @@ printed to the console, you would say:
 
     dotnet run -- list --filename A401.SYX --output text
 
+### Dump the patch content of a bank
+
+The `dump` command dumps all the patch information from the bank
+in either text or JSON format. For example:
+
+    dotnet run -- dump --filename A401.SYX --output json
+
+shows the JSON serialization of the bank data.
+
 ### Extract a patch from a bank
 
 You can use the `extract` command to extract a patch from a bank into a separate
@@ -47,4 +56,10 @@ single patch, you can inject it into the bank file `A402.SYX` into slot B-6 with
 If you leave out the optional `destination` argument, the patch will be injected into the
 slot that is imprinted in the patch file, either by the `k4tool` `extract` command or a manual
 data dump from the K4, captured by some other utility.
+
+### Show the Kawai K4 wave list
+
+The `wave` command shows the wave list of the Kawai K4, like so:
+
+    dotnet run -- wave
 

@@ -26,7 +26,6 @@ namespace K4Tool
             var parserResult = Parser.Default.ParseArguments<
                 ListOptions,
                 DumpOptions,
-                ReportOptions,
                 InitOptions,
                 GenerateOptions,
                 ExtractOptions,
@@ -35,7 +34,6 @@ namespace K4Tool
             parserResult.MapResult(
                 (ListOptions opts) => RunListAndReturnExitCode(opts),
                 (DumpOptions opts) => RunDumpAndReturnExitCode(opts),
-                (ReportOptions opts) => RunReportAndReturnExitCode(opts),
                 (InitOptions opts) => RunInitAndReturnExitCode(opts),
                 (GenerateOptions opts) => RunGenerateAndReturnExitCode(opts),
                 (ExtractOptions opts) => RunExtractAndReturnExitCode(opts),
@@ -310,30 +308,49 @@ namespace K4Tool
 
             Bank bank = new Bank(fileData);
             //Console.WriteLine($"Bank: {bank.Singles.Count} single patches, {bank.Multis.Count} multi patches");
-            string json = JsonConvert.SerializeObject(
-                bank,
-                Formatting.Indented,
-                new Newtonsoft.Json.Converters.StringEnumConverter()
-            );
-            Console.WriteLine(json);
-            return 0;
-        }
 
-        public static int RunReportAndReturnExitCode(ReportOptions opts)
-        {
-            string fileName = opts.FileName;
-            byte[] fileData = File.ReadAllBytes(fileName);
-            Console.WriteLine($"SysEx file: '{fileName}' ({fileData.Length} bytes)");
-
-            List<byte[]> messages = Util.SplitBytesByDelimiter(fileData, 0xf7);
-            Console.WriteLine($"Got {messages.Count} messages");
-
-            foreach (byte[] message in messages)
+            string outputFormat = opts.Output;
+            if (outputFormat.Equals("text"))
             {
-                ProcessMessage(message);
-            }
+                Console.WriteLine("Single patches:");
+                int patchNumber = 0;
+                foreach (SinglePatch sp in bank.Singles)
+                {
+                    string patchId = PatchUtil.GetPatchName(patchNumber);
+                    Console.WriteLine(patchId);
+                    Console.WriteLine(sp.ToString());
+                    patchNumber++;
+                }
 
-            return 0;
+                patchNumber = 0;
+                Console.WriteLine("Multi patches:");
+                foreach (MultiPatch mp in bank.Multis)
+                {
+                    string patchId = PatchUtil.GetPatchName(patchNumber);
+                    Console.WriteLine(patchId);
+                    Console.WriteLine(mp.ToString());
+                    patchNumber++;
+                }
+
+                Console.WriteLine("Drum and effect patches: later");
+
+                return 0;
+            }
+            else if (outputFormat.Equals("json"))
+            {
+                string json = JsonConvert.SerializeObject(
+                    bank,
+                    Formatting.Indented,
+                    new Newtonsoft.Json.Converters.StringEnumConverter()
+                );
+                Console.WriteLine(json);
+                return 0;
+            }
+            else
+            {
+                Console.WriteLine($"Unknown output format: '{outputFormat}'");
+                return -1;
+            }
         }
 
         public static int RunInitAndReturnExitCode(InitOptions opts)
