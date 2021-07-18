@@ -300,6 +300,7 @@ namespace K4Tool
             return sb.ToString();
         }
 
+
         private static string MakeSinglePatchText(SinglePatch singlePatch)
         {
             string MakeSingleColumnRow(string label, string value)
@@ -600,6 +601,158 @@ namespace K4Tool
             return sb.ToString();
         }
 
+        private static string MakeMultiPatchText(MultiPatch multiPatch, List<SinglePatch> singlePatches)
+        {
+            string MakeSingleColumnRow(string label, string value)
+            {
+                return String.Format($"{label,-10}{value}");
+            }
+
+            string MakeTwoColumnRow(string category, string label, string value, bool isFirst = false)
+            {
+                StringBuilder sb = new StringBuilder();
+
+                string space = " ";
+                if (isFirst)
+                {
+                    sb.Append(String.Format($"{category,-10}"));
+                }
+                else
+                {
+                    sb.Append(String.Format($"{space,-10}"));
+                }
+
+                sb.Append(String.Format($"{label,-20} {value}"));
+
+                return sb.ToString();
+            }
+
+            string CenteredString(string s, int desiredLength)
+            {
+                if (s.Length >= desiredLength)
+                {
+                    return s;
+                }
+                int firstPad = (s.Length + desiredLength) / 2;
+                return s.PadLeft(firstPad).PadRight(desiredLength);
+            }
+
+            List<string> lines = new List<string>();
+
+            lines.Add(MakeSingleColumnRow("Volume", multiPatch.Volume.ToString()));
+            lines.Add(MakeSingleColumnRow("Effect", multiPatch.EffectPatch.ToString()));
+            lines.Add(MakeSingleColumnRow("Name", multiPatch.Name.ToString()));
+
+            string space = " ";
+            lines.Add(String.Format("{0,-30}{1}{2}{3}{4}{5}{6}{7}{8}", space,
+                CenteredString("1", 5), CenteredString("2", 5), CenteredString("3", 5), CenteredString("4", 5),
+                CenteredString("5", 5), CenteredString("6", 5), CenteredString("7", 5), CenteredString("8", 5)));
+
+            Dictionary<String, String> patchNames = new Dictionary<String, String>();
+
+            StringBuilder sectionValues = new StringBuilder();
+            foreach (Section section in multiPatch.sections)
+            {
+                string number = PatchUtil.GetPatchName(section.SinglePatch).Replace(" ", String.Empty);
+                sectionValues.Append(CenteredString(number, 5));
+
+                if (!patchNames.ContainsKey(number))
+                {
+                    patchNames.Add(number, singlePatches[section.SinglePatch].Name);
+                }
+            }
+            lines.Add(MakeTwoColumnRow("Inst", "Single Number", sectionValues.ToString(), true));
+
+/*
+            sectionValues.Clear();
+            foreach (Section section in multiPatch.sections)
+            {
+                sectionValues.Append(CenteredString(singlePatches[section.SinglePatch].Name, 5));
+            }
+            lines.Add(MakeTwoColumnRow("Inst", "       Name", sectionValues.ToString(), true));
+*/
+
+            sectionValues.Clear();
+            foreach (Section section in multiPatch.sections)
+            {
+                sectionValues.Append(CenteredString(section.ZoneLow.ToString(), 5));
+            }
+            lines.Add(MakeTwoColumnRow("Zone", "Zone Lo", sectionValues.ToString(), true));
+
+            sectionValues.Clear();
+            foreach (Section section in multiPatch.sections)
+            {
+                sectionValues.Append(CenteredString(section.ZoneHigh.ToString(), 5));
+            }
+            lines.Add(MakeTwoColumnRow("Zone", "Zone Hi", sectionValues.ToString()));
+
+            sectionValues.Clear();
+            foreach (Section section in multiPatch.sections)
+            {
+                sectionValues.Append(CenteredString(section.VelocitySwitch.ToString(), 5));
+            }
+            lines.Add(MakeTwoColumnRow("Zone", "Vel Sw", sectionValues.ToString()));
+
+            sectionValues.Clear();
+            foreach (Section section in multiPatch.sections)
+            {
+                sectionValues.Append(CenteredString(section.ReceiveChannel.ToString(), 5));
+            }
+            lines.Add(MakeTwoColumnRow("Sec Ch", "Rcv Ch", sectionValues.ToString(), true));
+
+            sectionValues.Clear();
+            foreach (Section section in multiPatch.sections)
+            {
+                sectionValues.Append(CenteredString(section.PlayMode.ToString(), 5));
+            }
+            lines.Add(MakeTwoColumnRow("Sec Ch", "Mode", sectionValues.ToString()));
+
+            sectionValues.Clear();
+            foreach (Section section in multiPatch.sections)
+            {
+                sectionValues.Append(CenteredString(section.Level.ToString(), 5));
+            }
+            lines.Add(MakeTwoColumnRow("Output", "Level", sectionValues.ToString(), true));
+
+            sectionValues.Clear();
+            foreach (Section section in multiPatch.sections)
+            {
+                sectionValues.Append(CenteredString(section.Transpose.ToString(), 5));
+            }
+            lines.Add(MakeTwoColumnRow("Output", "Trans", sectionValues.ToString()));
+
+            sectionValues.Clear();
+            foreach (Section section in multiPatch.sections)
+            {
+                sectionValues.Append(CenteredString(section.Tune.ToString(), 5));
+            }
+            lines.Add(MakeTwoColumnRow("Output", "Tune", sectionValues.ToString()));
+
+            sectionValues.Clear();
+            foreach (Section section in multiPatch.sections)
+            {
+                sectionValues.Append(CenteredString(section.Output.ToString(), 5));
+            }
+            lines.Add(MakeTwoColumnRow("Output", "Submix Ch", sectionValues.ToString()));
+
+            // Add names of singles used by this multi:
+            StringBuilder patchNamesLine = new StringBuilder();
+            foreach (string number in patchNames.Keys)
+            {
+                string name = patchNames[number];
+                patchNamesLine.Append(String.Format($"{number} = {name}  "));
+            }
+            lines.Add(patchNamesLine.ToString());
+
+            StringBuilder sb = new StringBuilder();
+            foreach (string line in lines)
+            {
+                sb.Append(line);
+                sb.Append("\n");
+            }
+            return sb.ToString();
+        }
+
         public static int RunDumpAndReturnExitCode(DumpOptions opts)
         {
             string fileName = opts.FileName;
@@ -616,23 +769,22 @@ namespace K4Tool
                 int patchNumber = 0;
                 foreach (SinglePatch sp in bank.Singles)
                 {
-                    string patchId = PatchUtil.GetPatchName(patchNumber);
-                    Console.WriteLine(patchId);
+                    string patchId = PatchUtil.GetPatchName(patchNumber).Replace(" ", String.Empty);
+                    Console.WriteLine(String.Format($"SINGLE {patchId}"));
                     Console.WriteLine(MakeSinglePatchText(sp));
                     patchNumber++;
                 }
 
-/*
                 patchNumber = 0;
                 Console.WriteLine("Multi patches:");
                 foreach (MultiPatch mp in bank.Multis)
                 {
-                    string patchId = PatchUtil.GetPatchName(patchNumber);
-                    Console.WriteLine(patchId);
-                    Console.WriteLine(mp.ToString());
+                    string patchId = PatchUtil.GetPatchName(patchNumber).Replace(" ", String.Empty);
+                    Console.WriteLine(String.Format($"MULTI {patchId}"));
+                    Console.WriteLine(MakeMultiPatchText(mp, bank.Singles));
                     patchNumber++;
                 }
-*/
+
                 Console.WriteLine("Drum and effect patches: later");
 
                 return 0;
