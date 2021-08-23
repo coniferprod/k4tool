@@ -652,6 +652,39 @@ namespace K4Tool
                 writer.WriteEndElement(); // row
             }
 
+            void WriteManyParametersWithIndexTerms(XmlWriter writer, string label1, string label2, List<string> values, List<(string, string)> indexterms)
+            {
+                writer.WriteStartElement("row");
+
+                writer.WriteStartElement("entry");
+
+                writer.WriteValue(label1);
+                writer.WriteEndElement(); // entry
+
+                writer.WriteStartElement("entry");
+                writer.WriteValue(label2);
+                writer.WriteEndElement(); // entry
+
+                for (int i = 0; i < values.Count; i++)
+                {
+                    writer.WriteStartElement("entry");
+                    writer.WriteAttributeString("align", "center");
+                    writer.WriteStartElement("indexterm");
+                    writer.WriteStartElement("primary");
+                    writer.WriteValue(indexterms[i].Item1);
+                    writer.WriteEndElement(); // primary
+                    writer.WriteStartElement("secondary");
+                    writer.WriteValue(indexterms[i].Item2);
+                    writer.WriteEndElement(); // secondary
+                    writer.WriteEndElement();  // indexterm
+
+                    writer.WriteValue(values[i]);
+                    writer.WriteEndElement(); // entry
+                }
+
+                writer.WriteEndElement(); // row
+            }
+
             void WriteFilterParameters(XmlWriter writer, string label1, string label2, string value1, string value2)
             {
                 writer.WriteStartElement("row");
@@ -763,12 +796,16 @@ namespace K4Tool
                 }
                 WriteManyParameters(writer, "", "KS Curve", values);
 
+                List<(string, string)> indexTerms = new List<(string, string)>();
+
                 values.Clear();
                 foreach (Source source in sp.Sources)
                 {
-                    values.Add(string.Format($"{source.WaveNumber} {Wave.Names[source.WaveNumber]}"));
+                    string waveName = Wave.Names[source.WaveNumber];
+                    values.Add(string.Format($"{source.WaveNumber} {waveName}"));
+                    indexTerms.Add(("waves", waveName));
                 }
-                WriteManyParameters(writer, "DCO", "Wave", values);
+                WriteManyParametersWithIndexTerms(writer, "DCO", "Wave", values, indexTerms);
 
                 values.Clear();
                 foreach (Source source in sp.Sources)
@@ -836,7 +873,7 @@ namespace K4Tool
                 values.Clear();
                 foreach (Amplifier amplifier in sp.Amplifiers)
                 {
-                    values.Add(amplifier.Env.Decay.ToString());
+                    values.Add(amplifier.Env.Release.ToString());
                 }
                 WriteManyParameters(writer, "", "Release", values);
 
@@ -1144,6 +1181,15 @@ namespace K4Tool
                 }
 
                 writer.WriteEndElement();  // sect2 for multi patches
+
+                writer.WriteStartElement("sect2");
+
+                writer.WriteStartElement("title");
+                writer.WriteValue("Drum");
+                writer.WriteEndElement();
+
+
+                writer.WriteEndElement();  // sect2 for DRUM
 
                 writer.WriteEndDocument();
                 writer.Close();
