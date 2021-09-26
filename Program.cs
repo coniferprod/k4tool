@@ -150,13 +150,6 @@ namespace K4Tool
 
         private static string MakeHtmlList(byte[] data, string title)
         {
-            string GetNoteName(int noteNumber) {
-                string[] notes = new string[] { "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B" };
-                int octave = noteNumber / 12 + 1;
-                string name = notes[noteNumber % 12];
-                return name + octave;
-            }
-
             StringBuilder sb = new StringBuilder();
 
             sb.Append(String.Format("<h1>{0}</h1>\n", title));
@@ -404,7 +397,7 @@ namespace K4Tool
             sourceValues.Clear();
             foreach (Source source in singlePatch.Sources)
             {
-                sourceValues.Append(CenteredString(source.WaveNumber.ToString(), 10));
+                sourceValues.Append(CenteredString(source.Wave.Number.ToString(), 10));
             }
             lines.Add(MakeTwoColumnRow("DCO", "Wave", sourceValues.ToString(), true));
 
@@ -651,14 +644,14 @@ namespace K4Tool
             Dictionary<String, String> patchNames = new Dictionary<String, String>();
 
             StringBuilder sectionValues = new StringBuilder();
-            foreach (Section section in multiPatch.sections)
+            foreach (Section section in multiPatch.Sections)
             {
-                string number = PatchUtil.GetPatchName(section.SinglePatch).Replace(" ", String.Empty);
+                string number = PatchUtil.GetPatchName(section.SinglePatch.Value).Replace(" ", String.Empty);
                 sectionValues.Append(CenteredString(number, 5));
 
                 if (!patchNames.ContainsKey(number))
                 {
-                    patchNames.Add(number, singlePatches[section.SinglePatch].Name);
+                    patchNames.Add(number, singlePatches[section.SinglePatch.Value].Name);
                 }
             }
             lines.Add(MakeTwoColumnRow("Inst", "Single Number", sectionValues.ToString(), true));
@@ -673,63 +666,63 @@ namespace K4Tool
 */
 
             sectionValues.Clear();
-            foreach (Section section in multiPatch.sections)
+            foreach (Section section in multiPatch.Sections)
             {
-                sectionValues.Append(CenteredString(section.ZoneLow.ToString(), 5));
+                sectionValues.Append(CenteredString(section.KeyboardZone.Low.ToString(), 5));
             }
             lines.Add(MakeTwoColumnRow("Zone", "Zone Lo", sectionValues.ToString(), true));
 
             sectionValues.Clear();
-            foreach (Section section in multiPatch.sections)
+            foreach (Section section in multiPatch.Sections)
             {
-                sectionValues.Append(CenteredString(section.ZoneHigh.ToString(), 5));
+                sectionValues.Append(CenteredString(section.KeyboardZone.High.ToString(), 5));
             }
             lines.Add(MakeTwoColumnRow("Zone", "Zone Hi", sectionValues.ToString()));
 
             sectionValues.Clear();
-            foreach (Section section in multiPatch.sections)
+            foreach (Section section in multiPatch.Sections)
             {
                 sectionValues.Append(CenteredString(section.VelocitySwitch.ToString(), 5));
             }
             lines.Add(MakeTwoColumnRow("Zone", "Vel Sw", sectionValues.ToString()));
 
             sectionValues.Clear();
-            foreach (Section section in multiPatch.sections)
+            foreach (Section section in multiPatch.Sections)
             {
                 sectionValues.Append(CenteredString(section.ReceiveChannel.ToString(), 5));
             }
             lines.Add(MakeTwoColumnRow("Sec Ch", "Rcv Ch", sectionValues.ToString(), true));
 
             sectionValues.Clear();
-            foreach (Section section in multiPatch.sections)
+            foreach (Section section in multiPatch.Sections)
             {
                 sectionValues.Append(CenteredString(section.PlayMode.ToString(), 5));
             }
             lines.Add(MakeTwoColumnRow("Sec Ch", "Mode", sectionValues.ToString()));
 
             sectionValues.Clear();
-            foreach (Section section in multiPatch.sections)
+            foreach (Section section in multiPatch.Sections)
             {
                 sectionValues.Append(CenteredString(section.Level.ToString(), 5));
             }
             lines.Add(MakeTwoColumnRow("Output", "Level", sectionValues.ToString(), true));
 
             sectionValues.Clear();
-            foreach (Section section in multiPatch.sections)
+            foreach (Section section in multiPatch.Sections)
             {
                 sectionValues.Append(CenteredString(section.Transpose.ToString(), 5));
             }
             lines.Add(MakeTwoColumnRow("Output", "Trans", sectionValues.ToString()));
 
             sectionValues.Clear();
-            foreach (Section section in multiPatch.sections)
+            foreach (Section section in multiPatch.Sections)
             {
                 sectionValues.Append(CenteredString(section.Tune.ToString(), 5));
             }
             lines.Add(MakeTwoColumnRow("Output", "Tune", sectionValues.ToString()));
 
             sectionValues.Clear();
-            foreach (Section section in multiPatch.sections)
+            foreach (Section section in multiPatch.Sections)
             {
                 sectionValues.Append(CenteredString(section.Output.ToString(), 5));
             }
@@ -899,8 +892,8 @@ namespace K4Tool
 
             // Override the patch defaults
             singlePatch.Name = opts.PatchName;
-            singlePatch.Volume = 100;
-            singlePatch.Effect = 1;
+            singlePatch.Volume = new LevelType(100);
+            singlePatch.Effect = new EffectNumberType(1);
 
             byte[] data = GenerateSystemExclusiveMessage(singlePatch, PatchUtil.GetPatchNumber(opts.PatchNumber));
 
@@ -1012,37 +1005,6 @@ namespace K4Tool
             }
 
             return 0;
-        }
-
-        public static string GetNoteName(int noteNumber) {
-            string[] notes = new string[] {"A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"};
-            int octave = noteNumber / 12 + 1;
-            string name = notes[noteNumber % 12];
-            return name + octave;
-        }
-
-        public static int GetPatchNumber(string s)
-        {
-            string us = s.ToUpper();
-            char[] bankNames = new char[] { 'A', 'B', 'C', 'D' };
-            int bankIndex = Array.IndexOf(bankNames, us[0]);
-            if (bankIndex < 0)
-            {
-                return 0;
-            }
-
-            int number = 0;
-            string ns = us.Substring(1);  // take the rest after the bank letter
-            try
-            {
-                number = Int32.Parse(ns) - 1;  // bring to range 0...15
-            }
-            catch (FormatException)
-            {
-                Console.WriteLine($"bad patch number: '{s}'");
-            }
-
-            return bankIndex * 16 + number;
         }
     }
 }
