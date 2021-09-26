@@ -80,4 +80,19 @@ namespace K4Tool
     public class WaveOptions {
 
     }
+
+    [Verb("table", HelpText = "Create patch tables")]
+    public class TableOptions {
+        [Option('f', "format", Required = true, HelpText = "Output file format ('docbook' or 'html').")]
+        public string Format { get; set; }
+
+        [Option('p', "patch", Required = true, HelpText = "Type of patch (all, single, multi, drum, effect.")]
+        public string PatchType { get; set; }
+
+        [Option('i', "input", Required = true, HelpText = "Input file name.")]
+        public string InputFileName { get; set; }
+
+        [Option('i', "output", Required = true, HelpText = "Output file name.")]
+        public string OutputFileName { get; set; }
+    }
 }
