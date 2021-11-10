@@ -15,12 +15,8 @@ namespace K4Tool
 {
     class Program
     {
-        public const int SinglePatchCount = 64;  // banks A, B, C and D with 16 patches each
         public const int BankCount = 4;
         public const int PatchesPerBank = 16;
-
-        public const int MultiPatchCount = 64;   // same as single
-        public const int EffectPatchCount = 32;
 
         static int Main(string[] args)
         {
@@ -50,6 +46,8 @@ namespace K4Tool
 
         public static int RunListAndReturnExitCode(ListOptions opts)
         {
+            Console.SetError(new StreamWriter(@".\errors.txt"));
+
             string fileName = opts.FileName;
             byte[] message = File.ReadAllBytes(fileName);
             string namePart = new DirectoryInfo(fileName).Name;
@@ -94,7 +92,7 @@ namespace K4Tool
             sb.Append("SINGLE patches:\n");
 
             int offset = 0;
-            for (int i = 0; i < SinglePatchCount; i++)
+            for (int i = 0; i < Bank.SinglePatchCount; i++)
             {
                 byte[] singleData = new byte[SinglePatch.DataSize];
                 Buffer.BlockCopy(data, offset, singleData, 0, SinglePatch.DataSize);
@@ -110,7 +108,7 @@ namespace K4Tool
             sb.Append("\n");
 
             sb.Append("MULTI patches:\n");
-            for (int i = 0; i < MultiPatchCount; i++)
+            for (int i = 0; i < Bank.MultiPatchCount; i++)
             {
                 byte[] multiData = new byte[MultiPatch.DataSize];
                 Buffer.BlockCopy(data, offset, multiData, 0, MultiPatch.DataSize);
@@ -298,6 +296,8 @@ namespace K4Tool
 
         public static int RunDumpAndReturnExitCode(DumpOptions opts)
         {
+            Console.SetError(new StreamWriter(@".\errors.txt"));
+
             string fileName = opts.FileName;
             byte[] fileData = File.ReadAllBytes(fileName);
             //Console.WriteLine($"SysEx file: '{fileName}' ({fileData.Length} bytes)");
@@ -328,7 +328,11 @@ namespace K4Tool
                     patchNumber++;
                 }
 
-                Console.WriteLine("Drum and effect patches: later");
+                Console.WriteLine("Drum:");
+                foreach (DrumNote note in bank.Drum.Notes)
+                {
+                    Console.WriteLine($"S1 = {note.Source1}  S2 = {note.Source2}");
+                }
 
                 return 0;
             }
@@ -352,14 +356,14 @@ namespace K4Tool
         public static int RunInitAndReturnExitCode(InitOptions opts)
         {
             List<SinglePatch> singlePatches = new List<SinglePatch>();
-            for (int i = 0; i < SinglePatchCount; i++)
+            for (int i = 0; i < Bank.SinglePatchCount; i++)
             {
                 SinglePatch single = new SinglePatch();
                 singlePatches.Add(single);
             }
 
             List<MultiPatch> multiPatches = new List<MultiPatch>();
-            for (int i = 0; i < MultiPatchCount; i++)
+            for (int i = 0; i < Bank.MultiPatchCount; i++)
             {
                 MultiPatch multi = new MultiPatch();
                 multiPatches.Add(multi);
@@ -398,7 +402,7 @@ namespace K4Tool
             data.AddRange(drums.ToData());
 
             List<EffectPatch> effectPatches = new List<EffectPatch>();
-            for (int i = 0; i < EffectPatchCount; i++)
+            for (int i = 0; i < Bank.EffectPatchCount; i++)
             {
                 EffectPatch effect = new EffectPatch();
                 effectPatches.Add(effect);
