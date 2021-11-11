@@ -28,7 +28,8 @@ namespace K4Tool
                 ExtractOptions,
                 InjectOptions,
                 WaveOptions,
-                TableOptions>(args);
+                TableOptions,
+                InfoOptions>(args);
             parserResult.MapResult(
                 (ListOptions opts) => RunListAndReturnExitCode(opts),
                 (DumpOptions opts) => RunDumpAndReturnExitCode(opts),
@@ -38,6 +39,7 @@ namespace K4Tool
                 (InjectOptions opts) => RunInjectAndReturnExitCode(opts),
                 (WaveOptions opts) => RunWaveAndReturnExitCode(opts),
                 (TableOptions opts) => RunTableAndReturnExitCode(opts),
+                (InfoOptions opts) => RunInfoAndReturnExitCode(opts),
                 errs => 1
             );
 
@@ -46,7 +48,7 @@ namespace K4Tool
 
         public static int RunListAndReturnExitCode(ListOptions opts)
         {
-            Console.SetError(new StreamWriter(@".\errors.txt"));
+            Console.SetError(new StreamWriter(@"errors.txt"));
 
             string fileName = opts.FileName;
             byte[] message = File.ReadAllBytes(fileName);
@@ -296,7 +298,7 @@ namespace K4Tool
 
         public static int RunDumpAndReturnExitCode(DumpOptions opts)
         {
-            Console.SetError(new StreamWriter(@".\errors.txt"));
+            Console.SetError(new StreamWriter(@"errors.txt"));
 
             string fileName = opts.FileName;
             byte[] fileData = File.ReadAllBytes(fileName);
@@ -519,8 +521,43 @@ namespace K4Tool
         private static void ProcessMessage(byte[] message)
         {
             SystemExclusiveHeader header = new SystemExclusiveHeader(message);
+            SystemExclusiveFunction function = (SystemExclusiveFunction)header.Function;
 
-            Console.WriteLine(header);
+            // Check the file size
+            Console.WriteLine("File size: {0} bytes", message.Length);
+            var systemExclusiveByteCount = SystemExclusiveHeader.DataSize + 1;  // header + terminator
+            var dataSize = message.Length + systemExclusiveByteCount;
+            switch (function)
+            {
+            case SystemExclusiveFunction.AllPatchDataDump:
+                if (message.Length != 15123)
+                {
+                    Console.WriteLine($"Not a valid All Patch Data Dump file size (should be 15123).");
+                    return;
+                }
+                break;
+
+            default:
+                break;
+            }
+
+            if (header.ManufacturerID != Constants.ManufacturerID)
+            {
+                Console.WriteLine($"Not a Kawai format System Exclusive file: manufacturer ID is {header.ManufacturerID:X2}h, should be {Constants.ManufacturerID:X2}h.");
+                //Console.WriteLine($"Header: {header.ToString()}");
+                return;
+            }
+
+            if (header.MachineID != (byte)MachineID.K4)
+            {
+                Console.WriteLine("Not a K4/K4R System Exclusive file: machine ID is {0}h, should be {1}h.", header.MachineID.ToString("X2"), ((byte)MachineID.K4).ToString("X2"));
+                //Console.WriteLine($"Header: {header.ToString()}");
+                return;
+            }
+
+            //Console.WriteLine(header);
+            Console.WriteLine("Manufacturer: Kawai ({0:X2}h)", header.ManufacturerID);
+            Console.WriteLine("Machine ID: {0:X2}h", header.MachineID);
 
             Dictionary<SystemExclusiveFunction, string> functionNames = new Dictionary<SystemExclusiveFunction, string>()
             {
@@ -539,15 +576,150 @@ namespace K4Tool
                 { SystemExclusiveFunction.WriteErrorProtect, "Write Error (Protect)" }
             };
 
-            SystemExclusiveFunction function = (SystemExclusiveFunction)header.Function;
-            string functionName = "";
+            var functionName = "";
             if (functionNames.TryGetValue(function, out functionName))
             {
-                Console.WriteLine($"Function = {functionName}");
+                Console.WriteLine($"Function: {functionName}");
             }
             else
             {
                 Console.WriteLine($"Unknown function: {function}");
+                return;
+            }
+
+            var locality = "I";
+            var patchName = "";
+            switch (function)
+            {
+            case SystemExclusiveFunction.OnePatchDataDump:
+                switch (header.Substatus1)
+                {
+                case 0x00:
+                    locality = "I";
+                    //Console.WriteLine("INTERNAL");
+                    patchName = PatchUtil.GetPatchName(header.Substatus2);
+                    if (header.Substatus2 < 64)
+                    {
+                        Console.WriteLine($"SINGLE {locality}{patchName}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"MULTI {locality}{patchName}");
+                    }
+                    Console.WriteLine();
+                    break;
+
+                case 0x01:
+                    //Console.WriteLine("INTERNAL");
+                    locality = "I";
+                    patchName = PatchUtil.GetPatchName(header.Substatus2);
+                    if (header.Substatus2 < 32)
+                    {
+                        Console.WriteLine($"EFFECT {locality}{patchName}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"DRUM {locality}");
+                    }
+                    break;
+
+                case 0x02:
+                    //Console.WriteLine("EXTERNAL");
+                    locality = "E";
+                    patchName = PatchUtil.GetPatchName(header.Substatus2);
+                    if (header.Substatus2 < 64)
+                    {
+                        Console.WriteLine($"SINGLE {locality}{patchName}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"MULTI {locality}{patchName}");
+                    }
+                    break;
+
+                case 0x03:
+                    //Console.WriteLine("EXTERNAL");
+                    locality = "E";
+                    patchName = PatchUtil.GetPatchName(header.Substatus2);
+                    if (header.Substatus2 < 32)
+                    {
+                        Console.WriteLine($"EFFECT {locality}{patchName}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"DRUM {locality}");
+                    }
+                    break;
+
+                default:
+                    Console.WriteLine("Unknown");
+                    break;
+                }
+                break;
+
+            case SystemExclusiveFunction.BlockPatchDataDump:
+                switch (header.Substatus1)
+                {
+                case 0x00:
+                case 0x01:
+                    Console.WriteLine("INTERNAL");
+                    break;
+
+                case 0x02:
+                case 0x03:
+                    Console.WriteLine("EXTERNAL");
+                    break;
+
+                default:
+                    Console.WriteLine("Not INT or EXT");
+                    break;
+                }
+
+                switch (header.Substatus2)
+                {
+                case 0x00:
+                    if (header.Substatus1 == 0x01 || header.Substatus1 == 0x03)
+                    {
+                        Console.WriteLine("All EFFECTs");
+                    }
+                    else
+                    {
+                        Console.WriteLine("All SINGLEs");
+                    }
+                    break;
+
+                case 0x40:
+                    Console.WriteLine("All MULTIs");
+                    break;
+
+                default:
+                    Console.WriteLine("Not SINGLEs or MULTIs");
+                    break;
+                }
+                break;
+
+            case SystemExclusiveFunction.AllPatchDataDump:
+                switch (header.Substatus1)
+                {
+                case 0x00:
+                    Console.WriteLine("INTERNAL");
+                    break;
+
+                case 0x02:
+                    Console.WriteLine("EXTERNAL");
+                    break;
+
+                default:
+                    Console.WriteLine("Not INT or EXT");
+                    break;
+                }
+
+                // NOTE: header.Substatus2 should be 0x00 at this point
+                break;
+
+            default:
+                Console.WriteLine("Something else than One, Block, or All Patch Data Dump");
+                break;
             }
         }
 
@@ -1202,6 +1374,18 @@ namespace K4Tool
                 Console.WriteLine($"Unknown output format: '{format}'");
                 return -1;
             }
+        }
+
+        public static int RunInfoAndReturnExitCode(InfoOptions opts)
+        {
+            string fileName = opts.InputFileName;
+            byte[] fileData = File.ReadAllBytes(fileName);
+
+            //SystemExclusiveHeader header = new SystemExclusiveHeader(fileData);
+            ProcessMessage(fileData);
+            //Console.WriteLine(header.ToString());
+
+            return 0;
         }
     }
 }

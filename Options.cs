@@ -78,7 +78,7 @@ namespace K4Tool
 
     [Verb("wave", HelpText = "Show wave list.")]
     public class WaveOptions {
-
+        // empty
     }
 
     [Verb("table", HelpText = "Create patch tables")]
@@ -92,7 +92,13 @@ namespace K4Tool
         [Option('i', "input", Required = true, HelpText = "Input file name.")]
         public string InputFileName { get; set; }
 
-        [Option('i', "output", Required = true, HelpText = "Output file name.")]
+        [Option('o', "output", Required = true, HelpText = "Output file name.")]
         public string OutputFileName { get; set; }
+    }
+
+    [Verb("info", HelpText = "Show information about System Exclusive file")]
+    public class InfoOptions {
+        [Option('i', "input", Required = true, HelpText = "Input file name.")]
+        public string InputFileName { get; set; }
     }
 }
