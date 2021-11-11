@@ -54,15 +54,15 @@ namespace K4Tool
             byte[] message = File.ReadAllBytes(fileName);
             string namePart = new DirectoryInfo(fileName).Name;
             DateTime timestamp = File.GetLastWriteTime(fileName);
-            string timestampString = timestamp.ToString("yyyy-MM-dd hh:mm:ss");
+            var timestampString = timestamp.ToString("yyyy-MM-dd hh:mm:ss");
             Console.WriteLine($"System Exclusive file: '{namePart}' ({timestampString}, {message.Length} bytes)");
 
-            SystemExclusiveHeader header = new SystemExclusiveHeader(message);
+            var header = new SystemExclusiveHeader(message);
             // TODO: Check the SysEx file header for validity
 
             // Extract the patch bytes (discarding the SysEx header and terminator)
-            int dataLength = message.Length - SystemExclusiveHeader.DataSize - 1;
-            byte[] data = new byte[dataLength];
+            var dataLength = message.Length - SystemExclusiveHeader.DataSize - 1;
+            var data = new byte[dataLength];
             Array.Copy(message, SystemExclusiveHeader.DataSize, data, 0, dataLength);
 
             // TODO: Split the data into chunks representing single, multi, drum, and effect data
@@ -90,19 +90,20 @@ namespace K4Tool
         {
             //Console.WriteLine($"MakeTextList: data length = {data.Length} bytes");
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             sb.Append("SINGLE patches:\n");
 
-            int offset = 0;
-            for (int i = 0; i < Bank.SinglePatchCount; i++)
+            var offset = 0;
+            for (var i = 0; i < Bank.SinglePatchCount; i++)
             {
-                byte[] singleData = new byte[SinglePatch.DataSize];
+                var singleData = new byte[SinglePatch.DataSize];
                 Buffer.BlockCopy(data, offset, singleData, 0, SinglePatch.DataSize);
                 //Console.WriteLine($"Constructing single patch from {singleData.Length} bytes of data starting at {offset}");
-                SinglePatch single = new SinglePatch(singleData);
+                var singlePatch = new SinglePatch(singleData);
                 string name = PatchUtil.GetPatchName(i);
-                sb.Append($"S{name}  {single.Name}\n");
-                if ((i + 1) % 16 == 0) {
+                sb.Append($"S{name}  {singlePatch.Name}\n");
+                if ((i + 1) % 16 == 0)
+                {
                     sb.Append("\n");
                 }
                 offset += SinglePatch.DataSize;
@@ -110,15 +111,16 @@ namespace K4Tool
             sb.Append("\n");
 
             sb.Append("MULTI patches:\n");
-            for (int i = 0; i < Bank.MultiPatchCount; i++)
+            for (var i = 0; i < Bank.MultiPatchCount; i++)
             {
-                byte[] multiData = new byte[MultiPatch.DataSize];
+                var multiData = new byte[MultiPatch.DataSize];
                 Buffer.BlockCopy(data, offset, multiData, 0, MultiPatch.DataSize);
                 //Console.WriteLine($"Constructing multi patch from {multiData.Length} bytes of data starting at {offset}");
-                MultiPatch multi = new MultiPatch(multiData);
+                var multiPatch = new MultiPatch(multiData);
                 string name = PatchUtil.GetPatchName(i);
-                sb.Append($"M{name}  {multi.Name}\n");
-                if ((i + 1) % 16 == 0) {
+                sb.Append($"M{name}  {multiPatch.Name}\n");
+                if ((i + 1) % 16 == 0)
+                {
                     sb.Append("\n");
                 }
                 offset += MultiPatch.DataSize;
@@ -137,13 +139,12 @@ namespace K4Tool
 
             sb.Append("\n");
             sb.Append("EFFECT SETTINGS:\n");
-            for (int i = 0; i < 32; i++)
+            for (var i = 0; i < Bank.EffectPatchCount; i++)
             {
-                byte[] effectData = new byte[EffectPatch.DataSize];
+                var effectData = new byte[EffectPatch.DataSize];
                 Buffer.BlockCopy(data, offset, effectData, 0, EffectPatch.DataSize);
                 //Console.WriteLine($"Constructing effect patch from {effectData.Length} bytes of data starting at {offset}");
-                EffectPatch effectPatch = new EffectPatch(effectData);
-
+                var effectPatch = new EffectPatch(effectData);
                 sb.Append($"E-{i+1,2}  {effectPatch}");
                 offset += EffectPatch.DataSize;
             }
@@ -153,7 +154,7 @@ namespace K4Tool
 
         private static string MakeHtmlList(byte[] data, string title)
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
             sb.Append(String.Format("<h1>{0}</h1>\n", title));
 
@@ -162,15 +163,15 @@ namespace K4Tool
             int offset = 0;
             int patchSize = SinglePatch.DataSize;
 
-            for (int bankNumber = 0; bankNumber < BankCount; bankNumber++)
+            for (var bankNumber = 0; bankNumber < BankCount; bankNumber++)
             {
                 SinglePatch[] patches = new SinglePatch[PatchesPerBank];
-                for (int patchNumber = 0; patchNumber < PatchesPerBank; patchNumber++)
+                for (var patchNumber = 0; patchNumber < PatchesPerBank; patchNumber++)
                 {
-                    byte[] singleData = new byte[patchSize];
+                    var singleData = new byte[patchSize];
                     Buffer.BlockCopy(data, offset, singleData, 0, patchSize);
-                    SinglePatch single = new SinglePatch(singleData);
-                    patches[patchNumber] = single;
+                    var singlePatch = new SinglePatch(singleData);
+                    patches[patchNumber] = singlePatch;
                     offset += patchSize;
                 }
 
@@ -181,23 +182,23 @@ namespace K4Tool
 
             sb.Append("<table>\n");
             sb.Append("<tr>\n    <th>SINGLE</th>\n");
-            for (int bankNumber = 0; bankNumber < BankCount; bankNumber++)
+            for (var bankNumber = 0; bankNumber < BankCount; bankNumber++)
             {
                 char bankLetter = "ABCD"[bankNumber];
                 sb.Append(String.Format("    <th>{0}</th>\n", bankLetter));
             }
             sb.Append("</tr>\n");
 
-            for (int patchNumber = 0; patchNumber < PatchesPerBank; patchNumber++)
+            for (var patchNumber = 0; patchNumber < PatchesPerBank; patchNumber++)
             {
                 sb.Append("<tr>\n");
                 sb.Append(String.Format("    <td>{0,2}</td>\n", patchNumber + 1));
-                for (int bankNumber = 0; bankNumber < BankCount; bankNumber++)
+                for (var bankNumber = 0; bankNumber < BankCount; bankNumber++)
                 {
                     SinglePatch[] patches = singleBanks[bankNumber];
                     string patchId = PatchUtil.GetPatchName(bankNumber * patchNumber);
-                    SinglePatch single = patches[patchNumber];
-                    sb.Append(String.Format($"    <td>{single.Name:10}</td>\n"));
+                    var singlePatch = patches[patchNumber];
+                    sb.Append(String.Format($"    <td>{singlePatch.Name:10}</td>\n"));
                 }
                 sb.Append("</tr>\n");
             }
@@ -211,15 +212,15 @@ namespace K4Tool
 
             MultiPatch[][] multiBanks = new MultiPatch[BankCount][];
 
-            for (int bankNumber = 0; bankNumber < BankCount; bankNumber++)
+            for (var bankNumber = 0; bankNumber < BankCount; bankNumber++)
             {
                 MultiPatch[] patches = new MultiPatch[PatchesPerBank];
-                for (int patchNumber = 0; patchNumber < PatchesPerBank; patchNumber++)
+                for (var patchNumber = 0; patchNumber < PatchesPerBank; patchNumber++)
                 {
-                    byte[] multiData = new byte[patchSize];
+                    var multiData = new byte[patchSize];
                     Buffer.BlockCopy(data, offset, multiData, 0, patchSize);
-                    MultiPatch multi = new MultiPatch(multiData);
-                    patches[patchNumber] = multi;
+                    var multiPatch = new MultiPatch(multiData);
+                    patches[patchNumber] = multiPatch;
                     offset += patchSize;
                 }
 
@@ -228,23 +229,23 @@ namespace K4Tool
 
             sb.Append("<table>\n");
             sb.Append("<tr>\n    <th>MULTI</th>\n");
-            for (int bankNumber = 0; bankNumber < BankCount; bankNumber++)
+            for (var bankNumber = 0; bankNumber < BankCount; bankNumber++)
             {
                 char bankLetter = "ABCD"[bankNumber];
                 sb.Append(String.Format("    <th>{0}</th>\n", bankLetter));
             }
             sb.Append("</tr>\n");
 
-            for (int patchNumber = 0; patchNumber < PatchesPerBank; patchNumber++)
+            for (var patchNumber = 0; patchNumber < PatchesPerBank; patchNumber++)
             {
                 sb.Append("<tr>\n");
                 sb.Append(String.Format("    <td>{0,2}</td>\n", patchNumber + 1));
-                for (int bankNumber = 0; bankNumber < BankCount; bankNumber++)
+                for (var bankNumber = 0; bankNumber < BankCount; bankNumber++)
                 {
                     MultiPatch[] patches = multiBanks[bankNumber];
                     string patchId = PatchUtil.GetPatchName(bankNumber * patchNumber);
-                    MultiPatch single = patches[patchNumber];
-                    sb.Append(String.Format($"    <td>{single.Name:10}</td>\n"));
+                    var multiPatch = patches[patchNumber];
+                    sb.Append(String.Format($"    <td>{multiPatch.Name:10}</td>\n"));
                 }
                 sb.Append("</tr>\n");
             }
@@ -280,13 +281,12 @@ namespace K4Tool
 
             patchSize = EffectPatch.DataSize;
 
-            for (int i = 0; i < 32; i++)
+            for (var i = 0; i < Bank.EffectPatchCount; i++)
             {
-                byte[] effectData = new byte[patchSize];
+                var effectData = new byte[patchSize];
                 Buffer.BlockCopy(data, offset, effectData, 0, patchSize);
                 //Console.WriteLine($"Constructing effect patch from {effectData.Length} bytes of data starting at {offset}");
-                EffectPatch effectPatch = new EffectPatch(effectData);
-
+                var effectPatch = new EffectPatch(effectData);
                 sb.Append($"<tr><td>E-{i+1,2}</td><td>{effectPatch}</td></tr>\n");
                 offset += patchSize;
             }
@@ -311,7 +311,7 @@ namespace K4Tool
             if (outputFormat.Equals("text"))
             {
                 Console.WriteLine("Single patches:");
-                int patchNumber = 0;
+                var patchNumber = 0;
                 foreach (SinglePatch sp in bank.Singles)
                 {
                     string patchId = PatchUtil.GetPatchName(patchNumber).Replace(" ", String.Empty);
@@ -357,22 +357,20 @@ namespace K4Tool
 
         public static int RunInitAndReturnExitCode(InitOptions opts)
         {
-            List<SinglePatch> singlePatches = new List<SinglePatch>();
-            for (int i = 0; i < Bank.SinglePatchCount; i++)
+            var singlePatches = new List<SinglePatch>();
+            for (var i = 0; i < Bank.SinglePatchCount; i++)
             {
-                SinglePatch single = new SinglePatch();
-                singlePatches.Add(single);
+                singlePatches.Add(new SinglePatch());
             }
 
-            List<MultiPatch> multiPatches = new List<MultiPatch>();
-            for (int i = 0; i < Bank.MultiPatchCount; i++)
+            var multiPatches = new List<MultiPatch>();
+            for (var i = 0; i < Bank.MultiPatchCount; i++)
             {
-                MultiPatch multi = new MultiPatch();
-                multiPatches.Add(multi);
+                multiPatches.Add(new MultiPatch());
             }
 
             // Create a System Exclusive header for an "All Patch Data Dump"
-            SystemExclusiveHeader header = new SystemExclusiveHeader();
+            var header = new SystemExclusiveHeader();
             header.ManufacturerID = 0x40;  // Kawai
             header.Channel = 0;  // MIDI channel 1
             header.Function = (byte)SystemExclusiveFunction.AllPatchDataDump;
@@ -381,7 +379,7 @@ namespace K4Tool
             header.Substatus1 = 0;  // INT
             header.Substatus2 = 0;  // always zero
 
-            List<byte> data = new List<byte>();
+            var data = new List<byte>();
             data.Add(SystemExclusiveHeader.Initiator);
             data.AddRange(header.ToData());
 
@@ -403,11 +401,10 @@ namespace K4Tool
             DrumPatch drums = new DrumPatch();
             data.AddRange(drums.ToData());
 
-            List<EffectPatch> effectPatches = new List<EffectPatch>();
-            for (int i = 0; i < Bank.EffectPatchCount; i++)
+            var effectPatches = new List<EffectPatch>();
+            for (var i = 0; i < Bank.EffectPatchCount; i++)
             {
-                EffectPatch effect = new EffectPatch();
-                effectPatches.Add(effect);
+                effectPatches.Add(new EffectPatch());
             }
 
             // Effect patches: 32 * 35 = 1120 bytes of data
@@ -444,7 +441,7 @@ namespace K4Tool
             Console.WriteLine("OK, you want to generate a single patch.");
             Console.WriteLine($"And you want to call it '{opts.PatchName}'.");
 
-            SinglePatch singlePatch = new SinglePatch();
+            var singlePatch = new SinglePatch();
 
             // Override the patch defaults
             singlePatch.Name = opts.PatchName;
@@ -464,9 +461,9 @@ namespace K4Tool
 
         private static byte[] GenerateSystemExclusiveMessage(SinglePatch patch, int patchNumber, int channel = 0)
         {
-            List<byte> data = new List<byte>();
+            var data = new List<byte>();
 
-            SystemExclusiveHeader header = new SystemExclusiveHeader();
+            var header = new SystemExclusiveHeader();
             header.ManufacturerID = 0x40;  // Kawai
             header.Channel = (byte)channel;
             header.Function = (byte)SystemExclusiveFunction.OnePatchDataDump;
@@ -494,12 +491,12 @@ namespace K4Tool
             string inputFileName = opts.InputFileName;
             byte[] fileData = File.ReadAllBytes(inputFileName);
 
-            Bank bank = new Bank(fileData);
-            int sourcePatchNumber = PatchUtil.GetPatchNumber(opts.SourcePatchNumber);
+            var bank = new Bank(fileData);
+            var sourcePatchNumber = PatchUtil.GetPatchNumber(opts.SourcePatchNumber);
 
             SinglePatch patch = bank.Singles[sourcePatchNumber];
 
-            int destinationPatchNumber = PatchUtil.GetPatchNumber(opts.DestinationPatchNumber);
+            var destinationPatchNumber = PatchUtil.GetPatchNumber(opts.DestinationPatchNumber);
             byte[] patchData = GenerateSystemExclusiveMessage(patch, destinationPatchNumber);
 
             // Write the data to the output file
@@ -515,13 +512,15 @@ namespace K4Tool
 
             // TODO: identify the type of the input file
 
+            Console.WriteLine("Not implemented yet");
+
             return 0;
         }
 
         private static void ProcessMessage(byte[] message)
         {
-            SystemExclusiveHeader header = new SystemExclusiveHeader(message);
-            SystemExclusiveFunction function = (SystemExclusiveFunction)header.Function;
+            var header = new SystemExclusiveHeader(message);
+            var function = (SystemExclusiveFunction)header.Function;
 
             // Check the file size
             Console.WriteLine("File size: {0} bytes", message.Length);
@@ -559,7 +558,7 @@ namespace K4Tool
             Console.WriteLine("Manufacturer: Kawai ({0:X2}h)", header.ManufacturerID);
             Console.WriteLine("Machine ID: {0:X2}h", header.MachineID);
 
-            Dictionary<SystemExclusiveFunction, string> functionNames = new Dictionary<SystemExclusiveFunction, string>()
+            var functionNames = new Dictionary<SystemExclusiveFunction, string>()
             {
                 { SystemExclusiveFunction.AllPatchDataDump, "All Patch Data Dump" },
                 { SystemExclusiveFunction.AllPatchDumpRequest, "All Patch Data Dump Request" },
@@ -725,7 +724,7 @@ namespace K4Tool
 
         public static int RunWaveAndReturnExitCode(WaveOptions opts)
         {
-            for (int i = 1; i <= Wave.WaveCount; i++)
+            for (var i = 1; i <= Wave.WaveCount; i++)
             {
                 Console.WriteLine($"{i,3} {Wave.Names[i]}");
             }
@@ -906,7 +905,7 @@ namespace K4Tool
                 writer.WriteStartElement("tgroup");
                 writer.WriteAttributeString("cols", columnCount.ToString());
 
-                for (int i = 1; i <= columnCount; i++)
+                for (var i = 1; i <= columnCount; i++)
                 {
                     writer.WriteStartElement("colspec");
                     writer.WriteAttributeString("colname", string.Format($"c{i}"));
@@ -944,7 +943,7 @@ namespace K4Tool
 
                 WriteSourceHeadings(writer);
 
-                List<string> values = new List<string>();
+                var values = new List<string>();
                 foreach (Source source in sp.Sources)
                 {
                     values.Add(source.Delay.ToString());
@@ -965,7 +964,7 @@ namespace K4Tool
                 }
                 WriteManyParameters(writer, "", "KS Curve", values);
 
-                List<(string, string)> indexTerms = new List<(string, string)>();
+                var indexTerms = new List<(string, string)>();
 
                 values.Clear();
                 foreach (Source source in sp.Sources)
@@ -1153,7 +1152,7 @@ namespace K4Tool
 
             void WriteMultiPatch(XmlWriter writer, MultiPatch mp, int patchNumber, List<SinglePatch> singlePatches)
             {
-                int columnCount = MultiPatch.SectionCount + 2;
+                var columnCount = MultiPatch.SectionCount + 2;
 
                 writer.WriteStartElement("table");
 
@@ -1173,7 +1172,7 @@ namespace K4Tool
 
                 writer.WriteStartElement("tgroup");
                 writer.WriteAttributeString("cols", columnCount.ToString());
-                for (int i = 1; i <= columnCount; i++)
+                for (var i = 1; i <= columnCount; i++)
                 {
                     writer.WriteStartElement("colspec");
                     writer.WriteAttributeString("colname", string.Format($"c{i}"));
@@ -1188,7 +1187,7 @@ namespace K4Tool
 
                 WriteSectionHeadings(writer);
 
-                List<string> values = new List<string>();
+                var values = new List<string>();
                 foreach (Section section in mp.Sections)
                 {
                     values.Add(PatchUtil.GetPatchName(section.SinglePatch.Value));
@@ -1274,13 +1273,13 @@ namespace K4Tool
             byte[] fileData = File.ReadAllBytes(fileName);
             //Console.WriteLine($"SysEx file: '{fileName}' ({fileData.Length} bytes)");
 
-            Bank bank = new Bank(fileData);
+            var bank = new Bank(fileData);
             string bankName = Path.GetFileNameWithoutExtension(opts.InputFileName);
 
             string format = opts.Format;
             if (format.Equals("docbook"))
             {
-                XmlWriterSettings settings = new XmlWriterSettings();
+                var settings = new XmlWriterSettings();
                 settings.Indent = true;
                 settings.NewLineOnAttributes = true;
                 XmlWriter writer = XmlWriter.Create(opts.OutputFileName, settings);
@@ -1307,7 +1306,7 @@ namespace K4Tool
                 writer.WriteValue("Single patches");
                 writer.WriteEndElement();
 
-                int patchNumber = 0;
+                var patchNumber = 0;
                 foreach (SinglePatch sp in bank.Singles)
                 {
                     writer.WriteStartElement("sect3");
