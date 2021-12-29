@@ -27,6 +27,7 @@ namespace K4Tool
                 GenerateOptions,
                 ExtractOptions,
                 InjectOptions,
+                CopyOptions,
                 WaveOptions,
                 TableOptions,
                 InfoOptions>(args);
@@ -37,6 +38,7 @@ namespace K4Tool
                 (GenerateOptions opts) => RunGenerateAndReturnExitCode(opts),
                 (ExtractOptions opts) => RunExtractAndReturnExitCode(opts),
                 (InjectOptions opts) => RunInjectAndReturnExitCode(opts),
+                (CopyOptions opts) => RunCopyAndReturnExitCode(opts),
                 (WaveOptions opts) => RunWaveAndReturnExitCode(opts),
                 (TableOptions opts) => RunTableAndReturnExitCode(opts),
                 (InfoOptions opts) => RunInfoAndReturnExitCode(opts),
@@ -515,6 +517,161 @@ namespace K4Tool
             Console.WriteLine("Not implemented yet");
 
             return 0;
+        }
+
+        private static int GetPatchOffset(string patchType, int patchNumber)
+        {
+            var offset = 8;  // past the SysEx header
+            if (patchType.Equals("single"))
+            {
+                offset += patchNumber * 131;
+            }
+            else if (patchType.Equals("multi"))
+            {
+                offset += 64 * 131;  // past the single patches
+                offset += patchNumber * 77;
+            }
+            else if (patchType.Equals("drum"))
+            {
+                offset += 64 * 131;  // past the single patches
+                offset += 64 * 77;   // past the multi patches
+            }
+            else if (patchType.Equals("effect"))
+            {
+                offset += 64 * 131;  // past the single patches
+                offset += 64 * 77;   // past the multi patches
+                offset += 682;  // past drum
+                offset += patchNumber * 35;
+            }
+
+            return offset;
+        }
+
+        private static int GetPatchLength(string patchType)
+        {
+            if (patchType.Equals("single"))
+            {
+                return 131;
+            }
+            else if (patchType.Equals("multi"))
+            {
+                return 77;
+            }
+            else if (patchType.Equals("drum"))
+            {
+                return 682;
+            }
+            else if (patchType.Equals("effect"))
+            {
+                return 35;
+            }
+
+            return 0;
+        }
+
+        public static List<byte> GetPatchData(List<byte> data, string patchType, int patchNumber)
+        {
+            var offset = GetPatchOffset(patchType, patchNumber);
+            var length = GetPatchLength(patchType);
+            return data.GetRange(offset, length);
+        }
+
+        public static int RunCopyAndReturnExitCode(CopyOptions options)
+        {
+            Console.WriteLine(options.InputFileName);
+            Console.WriteLine(options.PatchType);
+            Console.WriteLine(options.SourcePatchNumber);
+            Console.WriteLine(options.OutputFileName);
+            Console.WriteLine(options.DestinationPatchNumber);
+            Console.WriteLine(options.EffectNumber);
+
+            string inputFileName = options.InputFileName;
+            byte[] inputBytes = File.ReadAllBytes(inputFileName);
+
+            //var bank = new Bank(inputBytes);
+            // Don't parse the bank, as there is a crasher in single patch parsing.
+            // Just shuffle the raw bytes around for now.
+
+            var sourcePatchNumber = PatchUtil.GetPatchNumber(options.SourcePatchNumber);
+            var sourceOffset = GetPatchOffset(options.PatchType, sourcePatchNumber);
+            var destinationOffset = GetPatchOffset(options.PatchType, PatchUtil.GetPatchNumber(options.DestinationPatchNumber));
+
+            var outputData = new List<byte>(inputBytes);  // start with an exact copy of the input
+            var inputData = new List<byte>(inputBytes);   // used to read the patch to be copied
+
+            // Get the actual patch data so that we can examine it
+            var patchData = GetPatchData(inputData, options.PatchType, sourcePatchNumber);
+
+            // First insert the new data at the correct location
+            int patchLength = GetPatchLength(options.PatchType);
+            Console.WriteLine($"Inserting {patchLength} bytes into output data at offset {destinationOffset}");
+            outputData.InsertRange(destinationOffset, inputData.GetRange(sourceOffset, patchLength));
+
+            // Then remove the same number of bytes after it
+            int removeOffset = destinationOffset + patchLength;
+            Console.WriteLine($"Removing {patchLength} bytes from output data at offset {removeOffset}");
+            outputData.RemoveRange(removeOffset, patchLength);
+
+            // EffectNumber is zero if not specified
+            if (options.EffectNumber != 0)
+            {
+                // OK, we want to copy the effect settings from the original bank to the indicated slot.
+
+                // First get the effect settings of the original patch
+
+                var sourceEffectNumber = 0;
+                if (options.PatchType.Equals("single"))
+                {
+                    // Don't parse, as there is a crasher in single patch parsing.
+                    // Just take the effect patch number from offset 11.
+                    //var singlePatch = new SinglePatch(patchData.ToArray());
+                    //sourceEffectNumber = singlePatch.Effect.Value;  // 1...32
+                    sourceEffectNumber = patchData[11];
+                }
+
+                //EffectPatch effectPatch = bank.Effects[sourceEffectNumber];
+                Console.WriteLine($"Source patch is using effect patch #{sourceEffectNumber}");
+
+                var sourceEffectOffset = GetPatchOffset(options.PatchType, sourceEffectNumber - 1);  // adjusted to get correct offset
+                var effectLength = GetPatchLength("effect");
+
+                // Fetch the original effect bytes
+                Console.WriteLine($"Fetching {effectLength} bytes of effect data from input data at offset {sourceEffectOffset}");
+                var effectData = new List<byte>(inputData.GetRange(sourceEffectOffset, effectLength));
+
+                // Insert them into the output data at the correct slot
+                // Need to adjust the effect number to get the correct offset in the bank.
+                var destinationEffectOffset = GetPatchOffset("effect", options.EffectNumber - 1);
+                Console.WriteLine($"Inserting {effectLength} bytes of new effect data to output data at offset {destinationEffectOffset}");
+                outputData.InsertRange(destinationEffectOffset, effectData);
+
+                var effectRemoveOffset = destinationEffectOffset + effectLength;
+                Console.WriteLine($"Removing {effectLength} bytes of old effect data from output data at offset {effectRemoveOffset}");
+                outputData.RemoveRange(effectRemoveOffset, effectLength);
+
+                // Calculate new checksum
+                var payload = outputData.GetRange(8, outputData.Count - 8 - 2);  // header, old checksum and SysEx terminator
+                byte checksum = GetChecksum(payload);
+                Console.WriteLine("New checksum = 0x{0:X2}", checksum);
+                outputData[outputData.Count - 2] = checksum;
+            }
+
+            string outputFileName = options.OutputFileName;
+            File.WriteAllBytes(outputFileName, outputData.ToArray());
+
+            return 0;
+        }
+
+        private static byte GetChecksum(List<byte> payload)
+        {
+            byte[] data = payload.ToArray();
+            int sum = 0;
+            foreach (byte b in data)
+            {
+                sum = (sum + b) & 0xff;
+            }
+            sum += 0xA5;
+            return (byte)(sum & 0x7f);
         }
 
         private static void ProcessMessage(byte[] message)

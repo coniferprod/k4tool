@@ -47,7 +47,8 @@ namespace K4Tool
     }
 
     [Verb("extract", HelpText = "Extract patch from bank.")]
-    public class ExtractOptions {
+    public class ExtractOptions
+    {
         [Option('i', "input", Required = true, HelpText = "Input file to extract from. Must be a bank file.")]
         public string InputFileName { get; set; }
 
@@ -65,7 +66,8 @@ namespace K4Tool
     }
 
     [Verb("inject", HelpText = "Inject patch into bank.")]
-    public class InjectOptions {
+    public class InjectOptions
+    {
         [Option('i', "input", Required = true, HelpText = "Patch file whose contents to inject. Must be a single, multi, drum, or effect.")]
         public string InputFileName { get; set; }
 
@@ -74,6 +76,28 @@ namespace K4Tool
 
         [Option('d', "destination", Required = false, HelpText = "Destination patch bank and number (for example, A1 or D16). If omitted, the bank and number in the patch file are used, if applicable.")]
         public string DestinationPatchNumber { get; set; }
+    }
+
+    [Verb("copy", HelpText = "Copy patch from one bank to another.")]
+    public class CopyOptions
+    {
+        [Option('i', "input", Required = true, HelpText = "Name of input bank file")]
+        public string InputFileName { get; set; }
+
+        [Option('t', "type", Required = true, HelpText = "Type of patch (single, multi, drum, effect).")]
+        public string PatchType { get; set; }
+
+        [Option('s', "source", Required = true, HelpText = "Source patch bank and number (for example, A1 or D16).")]
+        public string SourcePatchNumber { get; set; }
+
+        [Option('o', "output", Required = true, HelpText = "Output file to extract to.")]
+        public string OutputFileName { get; set; }
+
+        [Option('d', "destination", Required = true, HelpText = "Destination patch bank and number (for example, A1 or D16).")]
+        public string DestinationPatchNumber { get; set; }
+
+        [Option('e', "effect", Required = false, HelpText = "Effect number (1...32)")]
+        public int EffectNumber { get; set; }
     }
 
     [Verb("wave", HelpText = "Show wave list.")]
