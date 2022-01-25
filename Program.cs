@@ -380,7 +380,7 @@ namespace K4Tool
             }
 
             // Create a System Exclusive header for an "All Patch Data Dump"
-            var header = new SystemExclusiveHeader();
+            var header = new SystemExclusiveHeader(0);  // channel 1
             header.ManufacturerID = 0x40;  // Kawai
             header.Channel = 0;  // MIDI channel 1
             header.Function = (byte)SystemExclusiveFunction.AllPatchDataDump;
@@ -473,7 +473,7 @@ namespace K4Tool
         {
             var data = new List<byte>();
 
-            var header = new SystemExclusiveHeader();
+            var header = new SystemExclusiveHeader((byte)channel);
             header.ManufacturerID = 0x40;  // Kawai
             header.Channel = (byte)channel;
             header.Function = (byte)SystemExclusiveFunction.OnePatchDataDump;

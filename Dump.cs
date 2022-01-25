@@ -341,12 +341,14 @@ namespace K4Tool
             var sectionValues = new StringBuilder();
             foreach (var section in multiPatch.Sections)
             {
-                string number = PatchUtil.GetPatchName(section.SinglePatch.Value).Replace(" ", String.Empty);
+                //Console.WriteLine($"Section single patch = {section.SinglePatch.Value}");
+
+                string number = PatchUtil.GetPatchName(section.SinglePatch.Value - 1).Replace(" ", String.Empty);
                 sectionValues.Append(CenteredString(number, 5));
 
                 if (!patchNames.ContainsKey(number))
                 {
-                    patchNames.Add(number, this.bank.Singles[section.SinglePatch.Value].Name);
+                    patchNames.Add(number, this.bank.Singles[section.SinglePatch.Value - 1].Name);
                 }
             }
             lines.Add(MakeTwoColumnRow("Inst", "Single Number", sectionValues.ToString(), true));
