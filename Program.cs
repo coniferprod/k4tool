@@ -306,7 +306,15 @@ namespace K4Tool
             byte[] fileData = File.ReadAllBytes(fileName);
             //Console.WriteLine($"SysEx file: '{fileName}' ({fileData.Length} bytes)");
 
-            Bank bank = new Bank(fileData);
+            var header = new SystemExclusiveHeader(fileData);
+            // TODO: Check the SysEx file header for validity
+
+            // Extract the patch bytes (discarding the SysEx header and terminator)
+            var dataLength = fileData.Length - SystemExclusiveHeader.DataSize - 1;
+            var data = new byte[dataLength];
+            Array.Copy(fileData, SystemExclusiveHeader.DataSize, data, 0, dataLength);
+
+            Bank bank = new Bank(data);
             Dump dump = new Dump(bank);
 
             string outputFormat = opts.Output;
