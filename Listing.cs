@@ -99,19 +99,31 @@ namespace K4Tool
                 sb.Append("\n");
             }
 
-/*
-            sb.Append("\n");
-            sb.Append("DRUM:\n");
+            sb.Append("\nDRUM:\n");
             byte[] drumData = new byte[DrumPatch.DataSize];
-            Buffer.BlockCopy(data, offset, drumData, 0, DrumPatch.DataSize);
+            Buffer.BlockCopy(this.Data, offset, drumData, 0, DrumPatch.DataSize);
             Console.WriteLine($"Constructing drum patch from {drumData.Length} bytes of data starting at {offset}");
             DrumPatch drumPatch = new DrumPatch(drumData);
-*/
+
+            sb.Append($"VOLUME = {drumPatch.Volume}  RCV CH = {drumPatch.ReceiveChannel}  VELO DEPTH = {drumPatch.VelocityDepth}\n");
+            sb.Append("KEY NAME  NOTE    WAVE S1  WAVE S2  DECAY S1  DECAY S2  TUNE S1  TUNE S2   LEVEL S1  LEVEL S2  SUBMIX CH\n");
+
+            var noteNumber = 36;
+            foreach (DrumNote note in drumPatch.Notes)
+            {
+                sb.Append($"{noteNumber} | {note.Source1.Wave:10} | {note.Source2.Wave:10} | ");
+                sb.Append($"{note.Source1.Decay} {note.Source2.Decay} | ");
+                sb.Append($"{note.Source1.Tune} {note.Source2.Tune} | ");
+                //sb.Append($"{note.Source1.Level} {note.Source2.Level} | ");  // TODO: need to make Level public in KSynthLib!
+                sb.Append($"{note.OutputSelect}");
+
+                sb.Append("\n");
+                noteNumber++;
+            }
 
             offset += DrumPatch.DataSize;
 
-            sb.Append("\n");
-            sb.Append("EFFECT SETTINGS:\n");
+            sb.Append("\nEFFECT SETTINGS:\n");
             for (var i = 0; i < Bank.EffectPatchCount; i++)
             {
                 var effectData = new byte[EffectPatch.DataSize];
