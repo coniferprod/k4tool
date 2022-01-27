@@ -4,14 +4,15 @@ Utility to work with Kawai K4 synthesizer patches.
 
 ## Installation
 
-You will need the [.NET Core](https://dotnet.microsoft.com/en-us/download) 3.1 or later from Microsoft to run this program.
+You will need the [.NET Core](https://dotnet.microsoft.com/en-us/download) SDK 3.1 or later from Microsoft to run this program. There is no binary distribution, so you'll need to build the program before you can run it.
 
-When you have installed .NET Core and cloned the repository from GitHub, change to the prorgram
-directory and issue the command
-
-    dotnet run
-
-The program will start and show you its command line options.
+Quick instructions for macOS:
+- Install .NET Core SDK.
+- You may already have Git installed. If not, use Homebrew to install it.
+- Open Terminal.
+- Clone the repository using Git, with `git clone https://github.com/coniferprod/k4tool.git`.
+- Change to the directory with `cd k4tool? .
+- Run the program with `dotnet run` and view the command-line options.
 
 ## Usage
 
