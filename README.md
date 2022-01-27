@@ -11,7 +11,7 @@ Quick instructions for macOS:
 - You may already have Git installed. If not, use Homebrew to install it.
 - Open Terminal.
 - Clone the repository using Git, with `git clone https://github.com/coniferprod/k4tool.git`.
-- Change to the directory with `cd k4tool? .
+- Change to the directory with `cd k4tool`.
 - Run the program with `dotnet run` and view the command-line options.
 
 ## Usage
