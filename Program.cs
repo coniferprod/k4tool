@@ -3,11 +3,13 @@ using System.IO;
 using System.Collections.Generic;
 using System.Text;
 using System.Xml;
+using System.Linq;
 
 using CommandLine;
 
 using KSynthLib.Common;
 using KSynthLib.K4;
+using KSynthLib.SystemExclusive;
 
 using Newtonsoft.Json;
 
@@ -48,29 +50,35 @@ namespace K4Tool
             return 0;
         }
 
+        public static byte[] GetBankData(byte[] fileData)
+        {
+            var message = Message.Create(fileData);
+
+            var header = new SystemExclusiveHeader(message.Payload.ToArray());
+
+            var patchDataLength = message.Payload.Count - SystemExclusiveHeader.DataSize;
+            var patchData = message.Payload.GetRange(SystemExclusiveHeader.DataSize, patchDataLength);
+
+            return patchData.ToArray();
+        }
+
+        public static Bank GetBank(byte[] fileData)
+        {
+            return new Bank(GetBankData(fileData));
+        }
+
         public static int RunListAndReturnExitCode(ListOptions opts)
         {
             Console.SetError(new StreamWriter(@"errors.txt"));
 
             string fileName = opts.FileName;
-            byte[] message = File.ReadAllBytes(fileName);
+            byte[] fileData = File.ReadAllBytes(fileName);
             string namePart = new DirectoryInfo(fileName).Name;
             DateTime timestamp = File.GetLastWriteTime(fileName);
             var timestampString = timestamp.ToString("yyyy-MM-dd hh:mm:ss");
-            Console.WriteLine($"System Exclusive file: '{namePart}' ({timestampString}, {message.Length} bytes)");
+            Console.WriteLine($"System Exclusive file: '{namePart}' ({timestampString}, {fileData.Length} bytes)");
 
-            var header = new SystemExclusiveHeader(message);
-            // TODO: Check the SysEx file header for validity
-
-            // Extract the patch bytes (discarding the SysEx header and terminator)
-            var dataLength = message.Length - SystemExclusiveHeader.DataSize - 1;
-            var data = new byte[dataLength];
-            Array.Copy(message, SystemExclusiveHeader.DataSize, data, 0, dataLength);
-
-            // TODO: Split the data into chunks representing single, multi, drum, and effect data
-            //Console.WriteLine($"Total data length (with/without header): {message.Length}/{data.Length} bytes");
-
-            var listing = new Listing(namePart, data);
+            var listing = new Listing(namePart, GetBankData(fileData));
 
             string outputFormat = opts.Output;
             if (outputFormat.Equals("text"))
@@ -98,15 +106,7 @@ namespace K4Tool
             byte[] fileData = File.ReadAllBytes(fileName);
             //Console.WriteLine($"SysEx file: '{fileName}' ({fileData.Length} bytes)");
 
-            var header = new SystemExclusiveHeader(fileData);
-            // TODO: Check the SysEx file header for validity
-
-            // Extract the patch bytes (discarding the SysEx header and terminator)
-            var dataLength = fileData.Length - SystemExclusiveHeader.DataSize - 1;
-            var data = new byte[dataLength];
-            Array.Copy(fileData, SystemExclusiveHeader.DataSize, data, 0, dataLength);
-
-            Bank bank = new Bank(data);
+            Bank bank = GetBank(fileData);
             Dump dump = new Dump(bank);
 
             string outputFormat = opts.Output;
@@ -173,7 +173,6 @@ namespace K4Tool
 
             // Create a System Exclusive header for an "All Patch Data Dump"
             var header = new SystemExclusiveHeader(0);  // channel 1
-            header.ManufacturerID = 0x40;  // Kawai
             header.Channel = 0;  // MIDI channel 1
             header.Function = (byte)SystemExclusiveFunction.AllPatchDataDump;
             header.Group = 0;  // synthesizer group
@@ -182,13 +181,13 @@ namespace K4Tool
             header.Substatus2 = 0;  // always zero
 
             var data = new List<byte>();
-            data.Add(SystemExclusiveHeader.Initiator);
             data.AddRange(header.ToData());
 
+            var patchBytes = new List<byte>();
             // Single patches: 64 * 131 = 8384 bytes of data
             foreach (SinglePatch s in singlePatches)
             {
-                data.AddRange(s.ToData());
+                patchBytes.AddRange(s.ToData());
             }
 
             // Multi patches: 64 * 77 = 4928 bytes of data
@@ -196,12 +195,12 @@ namespace K4Tool
             // multi patches are listed as 87, not 77 bytes
             foreach (MultiPatch m in multiPatches)
             {
-                data.AddRange(m.ToData());
+                patchBytes.AddRange(m.ToData());
             }
 
             // Drums: 682 bytes of data
             DrumPatch drums = new DrumPatch();
-            data.AddRange(drums.ToData());
+            patchBytes.AddRange(drums.ToData());
 
             var effectPatches = new List<EffectPatch>();
             for (var i = 0; i < Bank.EffectPatchCount; i++)
@@ -212,10 +211,19 @@ namespace K4Tool
             // Effect patches: 32 * 35 = 1120 bytes of data
             foreach (EffectPatch e in effectPatches)
             {
-                data.AddRange(e.ToData());
+                patchBytes.AddRange(e.ToData());
             }
 
-            data.Add(SystemExclusiveHeader.Terminator);
+            var payload = new List<byte>();
+            payload.AddRange(header.ToData());
+            payload.AddRange(patchBytes);
+
+            // Create a new System Exclusive message
+            var message = new ManufacturerSpecificMessage
+            {
+                Manufacturer = ManufacturerDefinition.Find(new byte[] { 0x40 }),
+                Payload = payload
+            };
 
             // SysEx initiator:    1
             // SysEx header:       7
@@ -227,7 +235,7 @@ namespace K4Tool
             // Total bytes:    15123
 
             // Write the data to the output file
-            File.WriteAllBytes(opts.OutputFileName, data.ToArray());
+            File.WriteAllBytes(opts.OutputFileName, message.ToData());
 
             return 0;
         }
@@ -263,10 +271,10 @@ namespace K4Tool
 
         private static byte[] GenerateSystemExclusiveMessage(SinglePatch patch, int patchNumber, int channel = 0)
         {
+
             var data = new List<byte>();
 
             var header = new SystemExclusiveHeader((byte)channel);
-            header.ManufacturerID = 0x40;  // Kawai
             header.Channel = (byte)channel;
             header.Function = (byte)SystemExclusiveFunction.OnePatchDataDump;
             header.Group = 0x00; // synth group
@@ -274,12 +282,17 @@ namespace K4Tool
             header.Substatus1 = 0x00;  // INT
             header.Substatus2 = (byte)patchNumber;
 
-            data.Add(SystemExclusiveHeader.Initiator);
-            data.AddRange(header.ToData());
-            data.AddRange(patch.ToData());
-            data.Add(SystemExclusiveHeader.Terminator);
+            var payload = new List<byte>();
+            payload.AddRange(header.ToData());
+            payload.AddRange(patch.ToData());
 
-            return data.ToArray();
+            var message = new ManufacturerSpecificMessage
+            {
+                Manufacturer = ManufacturerDefinition.Find(new byte[] { 0x40 }),
+                Payload = payload
+            };
+
+            return message.ToData();
         }
 
         public static int RunExtractAndReturnExitCode(ExtractOptions opts)
@@ -474,208 +487,230 @@ namespace K4Tool
             return (byte)(sum & 0x7f);
         }
 
-        private static void ProcessMessage(byte[] message)
+        private static string GetManufacturerIdentifierString(byte[] identifier)
         {
-            var header = new SystemExclusiveHeader(message);
-            var function = (SystemExclusiveFunction)header.Function;
-
-            // Check the file size
-            Console.WriteLine("File size: {0} bytes", message.Length);
-            var systemExclusiveByteCount = SystemExclusiveHeader.DataSize + 1;  // header + terminator
-            var dataSize = message.Length + systemExclusiveByteCount;
-            switch (function)
+            var idString = "";
+            foreach (byte b in identifier)
             {
-            case SystemExclusiveFunction.AllPatchDataDump:
-                if (message.Length != 15123)
+                idString += string.Format("{0:X2}H ", b);
+            }
+            return idString;
+        }
+
+        private static void ProcessMessage(byte[] messageBytes)
+        {
+            var message = Message.Create(messageBytes);
+
+            if (message is ManufacturerSpecificMessage)
+            {
+                var header = new SystemExclusiveHeader(message.Payload.ToArray());
+                var function = (SystemExclusiveFunction)header.Function;
+
+                // Check the file size
+                Console.WriteLine("File size: {0} bytes", messageBytes.Length);
+                var systemExclusiveByteCount = SystemExclusiveHeader.DataSize + 1;  // header + terminator
+                var dataSize = messageBytes.Length + systemExclusiveByteCount;
+                switch (function)
                 {
-                    Console.WriteLine($"Not a valid All Patch Data Dump file size (should be 15123).");
+                    case SystemExclusiveFunction.AllPatchDataDump:
+                        if (messageBytes.Length != 15123)
+                        {
+                            Console.WriteLine($"Not a valid All Patch Data Dump file size (should be 15123).");
+                            return;
+                        }
+                        break;
+
+                    default:
+                        break;
+                }
+
+                var kawaiMessage = (ManufacturerSpecificMessage)message;
+                Console.WriteLine(kawaiMessage);
+                if (!kawaiMessage.Manufacturer.Identifier.SequenceEqual(new byte[] { 0x40 }))
+                {
+                    Console.WriteLine($"Not a Kawai format System Exclusive file: manufacturer ID is {GetManufacturerIdentifierString(kawaiMessage.Manufacturer.Identifier)}, should be 40H.");
+                    //Console.WriteLine($"Header: {header.ToString()}");
                     return;
                 }
-                break;
 
-            default:
-                break;
-            }
+                if (header.MachineID != (byte)MachineID.K4)
+                {
+                    Console.WriteLine("Not a K4/K4R System Exclusive file: machine ID is {0}h, should be {1}h.", header.MachineID.ToString("X2"), ((byte)MachineID.K4).ToString("X2"));
+                    //Console.WriteLine($"Header: {header.ToString()}");
+                    return;
+                }
 
-            if (header.ManufacturerID != Constants.ManufacturerID)
-            {
-                Console.WriteLine($"Not a Kawai format System Exclusive file: manufacturer ID is {header.ManufacturerID:X2}h, should be {Constants.ManufacturerID:X2}h.");
-                //Console.WriteLine($"Header: {header.ToString()}");
-                return;
-            }
+                Console.WriteLine($"Manufacturer: Kawai {(GetManufacturerIdentifierString(kawaiMessage.Manufacturer.Identifier))}");
+                Console.WriteLine("Machine ID: {0:X2}h", header.MachineID);
 
-            if (header.MachineID != (byte)MachineID.K4)
-            {
-                Console.WriteLine("Not a K4/K4R System Exclusive file: machine ID is {0}h, should be {1}h.", header.MachineID.ToString("X2"), ((byte)MachineID.K4).ToString("X2"));
-                //Console.WriteLine($"Header: {header.ToString()}");
-                return;
-            }
+                var functionNames = new Dictionary<SystemExclusiveFunction, string>()
+                {
+                    { SystemExclusiveFunction.AllPatchDataDump, "All Patch Data Dump" },
+                    { SystemExclusiveFunction.AllPatchDumpRequest, "All Patch Data Dump Request" },
+                    { SystemExclusiveFunction.BlockPatchDataDump, "Block Patch Data Dump" },
+                    { SystemExclusiveFunction.BlockPatchDumpRequest, "Block Patch Data Dump Request" },
+                    { SystemExclusiveFunction.EditBufferDump, "Edit Buffer Dump" },
+                    { SystemExclusiveFunction.OnePatchDataDump, "One Patch Data Dump" },
+                    { SystemExclusiveFunction.OnePatchDumpRequest, "One Patch Data Dump Request" },
+                    { SystemExclusiveFunction.ParameterSend, "Parameter Send" },
+                    { SystemExclusiveFunction.ProgramChange, "Program Change" },
+                    { SystemExclusiveFunction.WriteComplete, "Write Complete" },
+                    { SystemExclusiveFunction.WriteError, "Write Error" },
+                    { SystemExclusiveFunction.WriteErrorNoCard, "Write Error (No Card)" },
+                    { SystemExclusiveFunction.WriteErrorProtect, "Write Error (Protect)" }
+                };
 
-            //Console.WriteLine(header);
-            Console.WriteLine("Manufacturer: Kawai ({0:X2}h)", header.ManufacturerID);
-            Console.WriteLine("Machine ID: {0:X2}h", header.MachineID);
+                var functionName = "";
+                if (functionNames.TryGetValue(function, out functionName))
+                {
+                    Console.WriteLine($"Function: {functionName}");
+                }
+                else
+                {
+                    Console.WriteLine($"Unknown function: {function}");
+                    return;
+                }
 
-            var functionNames = new Dictionary<SystemExclusiveFunction, string>()
-            {
-                { SystemExclusiveFunction.AllPatchDataDump, "All Patch Data Dump" },
-                { SystemExclusiveFunction.AllPatchDumpRequest, "All Patch Data Dump Request" },
-                { SystemExclusiveFunction.BlockPatchDataDump, "Block Patch Data Dump" },
-                { SystemExclusiveFunction.BlockPatchDumpRequest, "Block Patch Data Dump Request" },
-                { SystemExclusiveFunction.EditBufferDump, "Edit Buffer Dump" },
-                { SystemExclusiveFunction.OnePatchDataDump, "One Patch Data Dump" },
-                { SystemExclusiveFunction.OnePatchDumpRequest, "One Patch Data Dump Request" },
-                { SystemExclusiveFunction.ParameterSend, "Parameter Send" },
-                { SystemExclusiveFunction.ProgramChange, "Program Change" },
-                { SystemExclusiveFunction.WriteComplete, "Write Complete" },
-                { SystemExclusiveFunction.WriteError, "Write Error" },
-                { SystemExclusiveFunction.WriteErrorNoCard, "Write Error (No Card)" },
-                { SystemExclusiveFunction.WriteErrorProtect, "Write Error (Protect)" }
-            };
 
-            var functionName = "";
-            if (functionNames.TryGetValue(function, out functionName))
-            {
-                Console.WriteLine($"Function: {functionName}");
+                var locality = "I";
+                var patchName = "";
+                switch (function)
+                {
+                    case SystemExclusiveFunction.OnePatchDataDump:
+                        switch (header.Substatus1)
+                        {
+                            case 0x00:
+                                locality = "I";
+                                //Console.WriteLine("INTERNAL");
+                                patchName = PatchUtil.GetPatchName(header.Substatus2);
+                                if (header.Substatus2 < 64)
+                                {
+                                    Console.WriteLine($"SINGLE {locality}{patchName}");
+                                }
+                                else
+                                {
+                                    Console.WriteLine($"MULTI {locality}{patchName}");
+                                }
+                                Console.WriteLine();
+                                break;
+
+                            case 0x01:
+                                //Console.WriteLine("INTERNAL");
+                                locality = "I";
+                                patchName = PatchUtil.GetPatchName(header.Substatus2);
+                                if (header.Substatus2 < 32)
+                                {
+                                    Console.WriteLine($"EFFECT {locality}{patchName}");
+                                }
+                                else
+                                {
+                                    Console.WriteLine($"DRUM {locality}");
+                                }
+                                break;
+
+                            case 0x02:
+                                //Console.WriteLine("EXTERNAL");
+                                locality = "E";
+                                patchName = PatchUtil.GetPatchName(header.Substatus2);
+                                if (header.Substatus2 < 64)
+                                {
+                                    Console.WriteLine($"SINGLE {locality}{patchName}");
+                                }
+                                else
+                                {
+                                    Console.WriteLine($"MULTI {locality}{patchName}");
+                                }
+                                break;
+
+                            case 0x03:
+                                //Console.WriteLine("EXTERNAL");
+                                locality = "E";
+                                patchName = PatchUtil.GetPatchName(header.Substatus2);
+                                if (header.Substatus2 < 32)
+                                {
+                                    Console.WriteLine($"EFFECT {locality}{patchName}");
+                                }
+                                else
+                                {
+                                    Console.WriteLine($"DRUM {locality}");
+                                }
+                                break;
+
+                            default:
+                                Console.WriteLine("Unknown");
+                                break;
+                            }
+                            break;
+
+                    case SystemExclusiveFunction.BlockPatchDataDump:
+                        switch (header.Substatus1)
+                        {
+                            case 0x00:
+                            case 0x01:
+                                Console.WriteLine("INTERNAL");
+                                break;
+
+                            case 0x02:
+                            case 0x03:
+                                Console.WriteLine("EXTERNAL");
+                                break;
+
+                            default:
+                                Console.WriteLine("Not INT or EXT");
+                                break;
+                        }
+
+                        switch (header.Substatus2)
+                        {
+                            case 0x00:
+                                if (header.Substatus1 == 0x01 || header.Substatus1 == 0x03)
+                                {
+                                    Console.WriteLine("All EFFECTs");
+                                }
+                                else
+                                {
+                                    Console.WriteLine("All SINGLEs");
+                                }
+                                break;
+
+                            case 0x40:
+                                Console.WriteLine("All MULTIs");
+                                break;
+
+                            default:
+                                Console.WriteLine("Not SINGLEs or MULTIs");
+                                break;
+                        }
+                        break;
+
+                    case SystemExclusiveFunction.AllPatchDataDump:
+                        switch (header.Substatus1)
+                        {
+                            case 0x00:
+                                Console.WriteLine("INTERNAL");
+                                break;
+
+                            case 0x02:
+                                Console.WriteLine("EXTERNAL");
+                                break;
+
+                            default:
+                                Console.WriteLine("Not INT or EXT");
+                                break;
+                        }
+
+                        // NOTE: header.Substatus2 should be 0x00 at this point
+                        break;
+
+                    default:
+                        Console.WriteLine("Something else than One, Block, or All Patch Data Dump");
+                        break;
+                    }
             }
             else
             {
-                Console.WriteLine($"Unknown function: {function}");
+                Console.WriteLine("Not a valid manufacturer-specific System Exclusive message");
                 return;
-            }
-
-            var locality = "I";
-            var patchName = "";
-            switch (function)
-            {
-            case SystemExclusiveFunction.OnePatchDataDump:
-                switch (header.Substatus1)
-                {
-                case 0x00:
-                    locality = "I";
-                    //Console.WriteLine("INTERNAL");
-                    patchName = PatchUtil.GetPatchName(header.Substatus2);
-                    if (header.Substatus2 < 64)
-                    {
-                        Console.WriteLine($"SINGLE {locality}{patchName}");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"MULTI {locality}{patchName}");
-                    }
-                    Console.WriteLine();
-                    break;
-
-                case 0x01:
-                    //Console.WriteLine("INTERNAL");
-                    locality = "I";
-                    patchName = PatchUtil.GetPatchName(header.Substatus2);
-                    if (header.Substatus2 < 32)
-                    {
-                        Console.WriteLine($"EFFECT {locality}{patchName}");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"DRUM {locality}");
-                    }
-                    break;
-
-                case 0x02:
-                    //Console.WriteLine("EXTERNAL");
-                    locality = "E";
-                    patchName = PatchUtil.GetPatchName(header.Substatus2);
-                    if (header.Substatus2 < 64)
-                    {
-                        Console.WriteLine($"SINGLE {locality}{patchName}");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"MULTI {locality}{patchName}");
-                    }
-                    break;
-
-                case 0x03:
-                    //Console.WriteLine("EXTERNAL");
-                    locality = "E";
-                    patchName = PatchUtil.GetPatchName(header.Substatus2);
-                    if (header.Substatus2 < 32)
-                    {
-                        Console.WriteLine($"EFFECT {locality}{patchName}");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"DRUM {locality}");
-                    }
-                    break;
-
-                default:
-                    Console.WriteLine("Unknown");
-                    break;
-                }
-                break;
-
-            case SystemExclusiveFunction.BlockPatchDataDump:
-                switch (header.Substatus1)
-                {
-                case 0x00:
-                case 0x01:
-                    Console.WriteLine("INTERNAL");
-                    break;
-
-                case 0x02:
-                case 0x03:
-                    Console.WriteLine("EXTERNAL");
-                    break;
-
-                default:
-                    Console.WriteLine("Not INT or EXT");
-                    break;
-                }
-
-                switch (header.Substatus2)
-                {
-                case 0x00:
-                    if (header.Substatus1 == 0x01 || header.Substatus1 == 0x03)
-                    {
-                        Console.WriteLine("All EFFECTs");
-                    }
-                    else
-                    {
-                        Console.WriteLine("All SINGLEs");
-                    }
-                    break;
-
-                case 0x40:
-                    Console.WriteLine("All MULTIs");
-                    break;
-
-                default:
-                    Console.WriteLine("Not SINGLEs or MULTIs");
-                    break;
-                }
-                break;
-
-            case SystemExclusiveFunction.AllPatchDataDump:
-                switch (header.Substatus1)
-                {
-                case 0x00:
-                    Console.WriteLine("INTERNAL");
-                    break;
-
-                case 0x02:
-                    Console.WriteLine("EXTERNAL");
-                    break;
-
-                default:
-                    Console.WriteLine("Not INT or EXT");
-                    break;
-                }
-
-                // NOTE: header.Substatus2 should be 0x00 at this point
-                break;
-
-            default:
-                Console.WriteLine("Something else than One, Block, or All Patch Data Dump");
-                break;
             }
         }
 
