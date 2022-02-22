@@ -174,7 +174,7 @@ namespace K4Tool
             // Create a System Exclusive header for an "All Patch Data Dump"
             var header = new SystemExclusiveHeader(0);  // channel 1
             header.Channel = 0;  // MIDI channel 1
-            header.Function = (byte)SystemExclusiveFunction.AllPatchDataDump;
+            header.Function = SystemExclusiveFunction.AllPatchDataDump;
             header.Group = 0;  // synthesizer group
             header.MachineID = 0x04;  // K4/K4r ID
             header.Substatus1 = 0;  // INT
@@ -254,9 +254,9 @@ namespace K4Tool
             var singlePatch = new SinglePatch();
 
             // Override the patch defaults
-            singlePatch.Name = opts.PatchName;
-            singlePatch.Volume = new LevelType(100);
-            singlePatch.Effect = new EffectNumberType(1);
+            singlePatch.Name = new PatchName(opts.PatchName);
+            singlePatch.Volume = new Level(100);
+            singlePatch.Effect = new EffectNumber(1);
 
             byte[] data = GenerateSystemExclusiveMessage(singlePatch, PatchUtil.GetPatchNumber(opts.PatchNumber));
 
@@ -276,11 +276,11 @@ namespace K4Tool
 
             var header = new SystemExclusiveHeader((byte)channel);
             header.Channel = (byte)channel;
-            header.Function = (byte)SystemExclusiveFunction.OnePatchDataDump;
+            header.Function = SystemExclusiveFunction.OnePatchDataDump;
             header.Group = 0x00; // synth group
             header.MachineID = 0x04; // K4/K4r
             header.Substatus1 = 0x00;  // INT
-            header.Substatus2 = (byte)patchNumber;
+            header.Substatus2 = (sbyte)patchNumber;
 
             var payload = new List<byte>();
             payload.AddRange(header.ToData());
@@ -909,7 +909,7 @@ namespace K4Tool
                 WriteTwoColumnParameter(writer, "Volume", sp.Volume.ToString());
                 WriteTwoColumnParameter(writer, "Effect Patch", sp.Effect.ToString());
                 WriteTwoColumnParameter(writer, "Submix Ch", sp.Submix.ToString());
-                WriteTwoColumnParameter(writer, "Name", sp.Name);
+                WriteTwoColumnParameter(writer, "Name", sp.Name.Value);
 
                 WriteThreeColumnParameter(writer, "Common", "Source Mode", sp.SourceMode.ToString());
                 WriteThreeColumnParameter(writer, "", "AM", string.Format($"{sp.AM12.ToString()}, {sp.AM34.ToString()}"));
@@ -1175,7 +1175,7 @@ namespace K4Tool
 
                 WriteMultiTwoColumnParameter(writer, "Volume", mp.Volume.ToString());
                 WriteMultiTwoColumnParameter(writer, "Effect Patch", mp.EffectPatch.ToString());
-                WriteMultiTwoColumnParameter(writer, "Name", mp.Name);
+                WriteMultiTwoColumnParameter(writer, "Name", mp.Name.Value);
 
                 WriteSectionHeadings(writer);
 
@@ -1189,7 +1189,7 @@ namespace K4Tool
                 values.Clear();
                 foreach (Section section in mp.Sections)
                 {
-                    values.Add(singlePatches[section.SinglePatch.Value].Name);
+                    values.Add(singlePatches[section.SinglePatch.Value].Name.Value);
                 }
                 WriteManyParameters(writer, "", "Single Name", values);
 
