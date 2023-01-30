@@ -12,3 +12,5 @@ obj/
 
 # macOS
 .DS_Store
+
+errors.txt
