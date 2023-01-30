@@ -64,7 +64,7 @@ namespace K4Tool
             lines.Add(MakeSingleColumnRow("Volume", singlePatch.Volume.ToString()));
             lines.Add(MakeSingleColumnRow("Effect", singlePatch.Effect.ToString()));
             lines.Add(MakeSingleColumnRow("Submix ch", singlePatch.Submix.ToString()));
-            lines.Add(MakeSingleColumnRow("Name", singlePatch.Name.Value));
+            lines.Add(MakeSingleColumnRow("Name", singlePatch.Name));
             lines.Add(MakeTwoColumnRow("Common", "Source Mode", singlePatch.SourceMode.ToString(), true));
 
             var amValue = new StringBuilder();
@@ -318,7 +318,7 @@ namespace K4Tool
             foreach (string line in lines)
             {
                 sb.Append(line);
-                sb.Append("\n");
+                sb.AppendLine();
             }
             return sb.ToString();
         }
@@ -438,7 +438,7 @@ namespace K4Tool
             foreach (string line in lines)
             {
                 sb.Append(line);
-                sb.Append("\n");
+                sb.AppendLine();
             }
             return sb.ToString();
         }

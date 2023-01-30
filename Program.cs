@@ -283,8 +283,8 @@ namespace K4Tool
             header.Substatus2 = (sbyte)patchNumber;
 
             var payload = new List<byte>();
-            payload.AddRange(header.ToData());
-            payload.AddRange(patch.ToData());
+            payload.AddRange(header.GetSystemExclusiveData());
+            payload.AddRange(patch.GetSystemExclusiveData());
 
             var message = new ManufacturerSpecificMessage
             {
@@ -909,7 +909,7 @@ namespace K4Tool
                 WriteTwoColumnParameter(writer, "Volume", sp.Volume.ToString());
                 WriteTwoColumnParameter(writer, "Effect Patch", sp.Effect.ToString());
                 WriteTwoColumnParameter(writer, "Submix Ch", sp.Submix.ToString());
-                WriteTwoColumnParameter(writer, "Name", sp.Name.Value);
+                WriteTwoColumnParameter(writer, "Name", sp.Name);
 
                 WriteThreeColumnParameter(writer, "Common", "Source Mode", sp.SourceMode.ToString());
                 WriteThreeColumnParameter(writer, "", "AM", string.Format($"{sp.AM12.ToString()}, {sp.AM34.ToString()}"));
@@ -1175,7 +1175,7 @@ namespace K4Tool
 
                 WriteMultiTwoColumnParameter(writer, "Volume", mp.Volume.ToString());
                 WriteMultiTwoColumnParameter(writer, "Effect Patch", mp.EffectPatch.ToString());
-                WriteMultiTwoColumnParameter(writer, "Name", mp.Name.Value);
+                WriteMultiTwoColumnParameter(writer, "Name", mp.Name);
 
                 WriteSectionHeadings(writer);
 
