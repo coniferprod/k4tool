@@ -4,10 +4,10 @@ Utility to work with Kawai K4 synthesizer patches.
 
 ## Installation
 
-You will need the [.NET Core](https://dotnet.microsoft.com/en-us/download) SDK 3.1 or later from Microsoft to run this program. There is no binary distribution, so you'll need to build the program before you can run it.
+You will need [.NET 7](https://dotnet.microsoft.com/en-us/download) or later from Microsoft to run this program. There is no binary distribution, so you'll need to build the program before you can run it.
 
 Quick instructions for macOS:
-- Install .NET Core SDK.
+- Install .NET.
 - You may already have Git installed. If not, use Homebrew to install it.
 - Open Terminal.
 - Clone the repository using Git, with `git clone https://github.com/coniferprod/k4tool.git`.
@@ -41,5 +41,4 @@ To see a list of the Kawai K4 waves, use the `wave` command.
 This is not a polished end-user product. Use it at your own risk. If it works for you, great.
 If it doesn't, you can improve it or fix it if you know how to program in C# for .NET.
 
-You can also send suggestions for improvements of features, but I can't promise to do anything
-about them.
+You can also send suggestions for improvements of features, but I won't promise to do anything about them.

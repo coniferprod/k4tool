@@ -9,7 +9,7 @@ using CommandLine;
 
 using KSynthLib.Common;
 using KSynthLib.K4;
-using KSynthLib.SystemExclusive;
+using SyxPack;
 
 using Newtonsoft.Json;
 
@@ -181,13 +181,13 @@ namespace K4Tool
             header.Substatus2 = 0;  // always zero
 
             var data = new List<byte>();
-            data.AddRange(header.ToData());
+            data.AddRange(header.GetSystemExclusiveData());
 
             var patchBytes = new List<byte>();
             // Single patches: 64 * 131 = 8384 bytes of data
             foreach (SinglePatch s in singlePatches)
             {
-                patchBytes.AddRange(s.ToData());
+                patchBytes.AddRange(s.GetSystemExclusiveData());
             }
 
             // Multi patches: 64 * 77 = 4928 bytes of data
@@ -215,7 +215,7 @@ namespace K4Tool
             }
 
             var payload = new List<byte>();
-            payload.AddRange(header.ToData());
+            payload.AddRange(header.GetSystemExclusiveData());
             payload.AddRange(patchBytes);
 
             // Create a new System Exclusive message
@@ -254,9 +254,9 @@ namespace K4Tool
             var singlePatch = new SinglePatch();
 
             // Override the patch defaults
-            singlePatch.Name = new PatchName(opts.PatchName);
-            singlePatch.Volume = new Level(100);
-            singlePatch.Effect = new EffectNumber(1);
+            singlePatch.Name = opts.PatchName;
+            singlePatch.Volume = 100;
+            singlePatch.Effect = 1;
 
             byte[] data = GenerateSystemExclusiveMessage(singlePatch, PatchUtil.GetPatchNumber(opts.PatchNumber));
 
@@ -1182,14 +1182,14 @@ namespace K4Tool
                 var values = new List<string>();
                 foreach (Section section in mp.Sections)
                 {
-                    values.Add(PatchUtil.GetPatchName(section.SinglePatch.Value));
+                    values.Add(PatchUtil.GetPatchName(section.SinglePatch));
                 }
                 WriteManyParameters(writer, "Inst", "Single No.", values);
 
                 values.Clear();
                 foreach (Section section in mp.Sections)
                 {
-                    values.Add(singlePatches[section.SinglePatch.Value].Name.Value);
+                    values.Add(singlePatches[section.SinglePatch].Name);
                 }
                 WriteManyParameters(writer, "", "Single Name", values);
 
