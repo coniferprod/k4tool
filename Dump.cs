@@ -343,12 +343,12 @@ namespace K4Tool
             {
                 //Console.WriteLine($"Section single patch = {section.SinglePatch.Value}");
 
-                string number = PatchUtil.GetPatchName(section.SinglePatch.Value - 1).Replace(" ", String.Empty);
+                string number = PatchUtil.GetPatchName(section.SinglePatch - 1).Replace(" ", String.Empty);
                 sectionValues.Append(CenteredString(number, 5));
 
                 if (!patchNames.ContainsKey(number))
                 {
-                    patchNames.Add(number, this.bank.Singles[section.SinglePatch.Value - 1].Name);
+                    patchNames.Add(number, this.bank.Singles[section.SinglePatch - 1].Name);
                 }
             }
             lines.Add(MakeTwoColumnRow("Inst", "Single Number", sectionValues.ToString(), true));
