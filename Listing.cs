@@ -117,7 +117,7 @@ namespace K4Tool
                 //sb.Append($"{note.Source1.Level} {note.Source2.Level} | ");  // TODO: need to make Level public in KSynthLib!
                 sb.Append($"{note.OutputSelect}");
 
-                sb.Append("\n");
+                sb.AppendLine();
                 noteNumber++;
             }
 
@@ -141,7 +141,7 @@ namespace K4Tool
         {
             var sb = new StringBuilder();
 
-            sb.Append(String.Format("<h1>{0}</h1>\n", this.Title));
+            sb.AppendLine(string.Format("<h1>{0}</h1>", this.Title));
 
             SinglePatch[][] singleBanks = new SinglePatch[BankCount][]; //BankCount, PatchesPerBank];
 
@@ -165,29 +165,29 @@ namespace K4Tool
 
             // Now we should have all the single patches collected in four lists of 16 each
 
-            sb.Append("<table>\n");
-            sb.Append("<tr>\n    <th>SINGLE</th>\n");
+            sb.AppendLine("<table>");
+            sb.AppendLine("<tr>\n    <th>SINGLE</th>");
             for (var bankNumber = 0; bankNumber < BankCount; bankNumber++)
             {
                 char bankLetter = "ABCD"[bankNumber];
-                sb.Append(String.Format("    <th>{0}</th>\n", bankLetter));
+                sb.AppendLine(string.Format("    <th>{0}</th>", bankLetter));
             }
             sb.Append("</tr>\n");
 
             for (var patchNumber = 0; patchNumber < PatchesPerBank; patchNumber++)
             {
-                sb.Append("<tr>\n");
-                sb.Append(String.Format("    <td>{0,2}</td>\n", patchNumber + 1));
+                sb.AppendLine("<tr>");
+                sb.AppendLine(string.Format("    <td>{0,2}</td>", patchNumber + 1));
                 for (var bankNumber = 0; bankNumber < BankCount; bankNumber++)
                 {
                     SinglePatch[] patches = singleBanks[bankNumber];
                     string patchId = PatchUtil.GetPatchName(bankNumber * patchNumber);
                     var singlePatch = patches[patchNumber];
-                    sb.Append(String.Format($"    <td>{singlePatch.Name:10}</td>\n"));
+                    sb.AppendLine(string.Format($"    <td>{singlePatch.Name:10}</td>"));
                 }
-                sb.Append("</tr>\n");
+                sb.AppendLine("</tr>");
             }
-            sb.Append("</table>\n");
+            sb.AppendLine("</table>");
 
             //
             // Multi patches
@@ -212,30 +212,30 @@ namespace K4Tool
                 multiBanks[bankNumber] = patches;
             }
 
-            sb.Append("<table>\n");
-            sb.Append("<tr>\n    <th>MULTI</th>\n");
+            sb.AppendLine("<table>");
+            sb.AppendLine("<tr>\n    <th>MULTI</th>");
             for (var bankNumber = 0; bankNumber < BankCount; bankNumber++)
             {
                 char bankLetter = "ABCD"[bankNumber];
-                sb.Append(String.Format("    <th>{0}</th>\n", bankLetter));
+                sb.Append(string.Format("    <th>{0}</th>\n", bankLetter));
             }
-            sb.Append("</tr>\n");
+            sb.AppendLine("</tr>");
 
             for (var patchNumber = 0; patchNumber < PatchesPerBank; patchNumber++)
             {
-                sb.Append("<tr>\n");
-                sb.Append(String.Format("    <td>{0,2}</td>\n", patchNumber + 1));
+                sb.AppendLine("<tr>");
+                sb.AppendLine(string.Format("    <td>{0,2}</td>", patchNumber + 1));
                 for (var bankNumber = 0; bankNumber < BankCount; bankNumber++)
                 {
                     MultiPatch[] patches = multiBanks[bankNumber];
                     string patchId = PatchUtil.GetPatchName(bankNumber * patchNumber);
                     var multiPatch = patches[patchNumber];
-                    sb.Append(String.Format($"    <td>{multiPatch.Name:10}</td>\n"));
+                    sb.AppendLine(string.Format($"    <td>{multiPatch.Name:10}</td>"));
                 }
-                sb.Append("</tr>\n");
+                sb.AppendLine("</tr>");
             }
 
-            sb.Append("</table>\n");
+            sb.AppendLine("</table>");
 
             patchSize = DrumPatch.DataSize;
 
@@ -260,9 +260,9 @@ namespace K4Tool
 */
             offset += patchSize;
 
-            sb.Append("<table>\n");
-            sb.Append("<caption>EFFECT</caption>\n");
-            sb.Append("<tr><th>#</th><th>Type and parameters</th></tr>\n");
+            sb.AppendLine("<table>");
+            sb.AppendLine("<caption>EFFECT</caption>");
+            sb.AppendLine("<tr><th>#</th><th>Type and parameters</th></tr>");
 
             patchSize = EffectPatch.DataSize;
 
@@ -272,11 +272,11 @@ namespace K4Tool
                 Buffer.BlockCopy(this.Data, offset, effectData, 0, patchSize);
                 //Console.WriteLine($"Constructing effect patch from {effectData.Length} bytes of data starting at {offset}");
                 var effectPatch = new EffectPatch(effectData);
-                sb.Append($"<tr><td>E-{i+1,2}</td><td>{effectPatch}</td></tr>\n");
+                sb.AppendLine($"<tr><td>E-{i+1,2}</td><td>{effectPatch}</td></tr>");
                 offset += patchSize;
             }
 
-            sb.Append("</table>\n");
+            sb.AppendLine("</table>");
 
             return sb.ToString();
         }

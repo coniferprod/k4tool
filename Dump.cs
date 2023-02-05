@@ -24,7 +24,7 @@ namespace K4Tool
 
         private string MakeSingleColumnRow(string label, string value)
         {
-            return String.Format($"{label,-10}{value}");
+            return $"{label,-10}{value}";
         }
 
         private string MakeTwoColumnRow(string category, string label, string value, bool isFirst = false)
@@ -34,14 +34,14 @@ namespace K4Tool
             string space = " ";
             if (isFirst)
             {
-                sb.Append(String.Format($"{category,-10}"));
+                sb.Append($"{category,-10}");
             }
             else
             {
-                sb.Append(String.Format($"{space,-10}"));
+                sb.Append($"{space,-10}");
             }
 
-            sb.Append(String.Format($"{label,-20} {value}"));
+            sb.Append($"{label,-20} {value}");
 
             return sb.ToString();
         }
@@ -242,83 +242,82 @@ namespace K4Tool
             }
             lines.Add(MakeTwoColumnRow("DCA Mod", "         KS", sourceValues.ToString(), false));
 
-            lines.Add(String.Format("{0,-30}{1}{2}", space, CenteredString("F1", 20), CenteredString("F2", 20)));
+            lines.Add(string.Format("{0,-30}{1}{2}", space, CenteredString("F1", 20), CenteredString("F2", 20)));
 
             lines.Add(MakeTwoColumnRow("DCF", "Cutoff",
-                String.Format("{0}{1}",
+                string.Format("{0}{1}",
                     CenteredString(singlePatch.Filter1.Cutoff.ToString(), 20),
                     CenteredString(singlePatch.Filter2.Cutoff.ToString(), 20)), true));
 
             lines.Add(MakeTwoColumnRow("DCF", "Resonance",
-                String.Format("{0}{1}",
+                string.Format("{0}{1}",
                     CenteredString(singlePatch.Filter1.Resonance.ToString(), 20),
                     CenteredString(singlePatch.Filter2.Resonance.ToString(), 20))));
 
             lines.Add(MakeTwoColumnRow("DCF", "Vel Depth",
-                String.Format("{0}{1}",
+                string.Format("{0}{1}",
                     CenteredString(singlePatch.Filter1.CutoffMod.VelocityDepth.ToString(), 20),
                     CenteredString(singlePatch.Filter2.CutoffMod.VelocityDepth.ToString(), 20))));
 
             lines.Add(MakeTwoColumnRow("DCF", "KS Depth",
-                String.Format("{0}{1}",
+                string.Format("{0}{1}",
                     CenteredString(singlePatch.Filter1.CutoffMod.KeyScalingDepth.ToString(), 20),
                     CenteredString(singlePatch.Filter2.CutoffMod.KeyScalingDepth.ToString(), 20))));
 
             lines.Add(MakeTwoColumnRow("DCF", "LFO",
-                String.Format("{0}{1}",
+                string.Format("{0}{1}",
                     CenteredString(singlePatch.Filter1.IsLFO.ToString(), 20),
                     CenteredString(singlePatch.Filter2.IsLFO.ToString(), 20))));
 
             lines.Add(MakeTwoColumnRow("DCF Mod", "Env Depth",
-                String.Format("{0}{1}",
+                string.Format("{0}{1}",
                     CenteredString(singlePatch.Filter1.EnvelopeDepth.ToString(), 20),
                     CenteredString(singlePatch.Filter2.EnvelopeDepth.ToString(), 20)), true));
 
             lines.Add(MakeTwoColumnRow("DCF Mod", "Vel Depth",
-                String.Format("{0}{1}",
+                string.Format("{0}{1}",
                     CenteredString(singlePatch.Filter1.EnvelopeVelocityDepth.ToString(), 20),
                     CenteredString(singlePatch.Filter2.EnvelopeVelocityDepth.ToString(), 20))));
 
             lines.Add(MakeTwoColumnRow("DCF Mod", "Attack",
-                String.Format("{0}{1}",
+                string.Format("{0}{1}",
                     CenteredString(singlePatch.Filter1.Env.Attack.ToString(), 20),
                     CenteredString(singlePatch.Filter2.Env.Attack.ToString(), 20))));
 
             lines.Add(MakeTwoColumnRow("DCF Mod", "Decay",
-                String.Format("{0}{1}",
+                string.Format("{0}{1}",
                     CenteredString(singlePatch.Filter1.Env.Decay.ToString(), 20),
                     CenteredString(singlePatch.Filter2.Env.Decay.ToString(), 20))));
 
             lines.Add(MakeTwoColumnRow("DCF Mod", "Sustain",
-                String.Format("{0}{1}",
+                string.Format("{0}{1}",
                     CenteredString(singlePatch.Filter1.Env.Sustain.ToString(), 20),
                     CenteredString(singlePatch.Filter2.Env.Sustain.ToString(), 20))));
 
             lines.Add(MakeTwoColumnRow("DCF Mod", "Release",
-                String.Format("{0}{1}",
+                string.Format("{0}{1}",
                     CenteredString(singlePatch.Filter1.Env.Release.ToString(), 20),
                     CenteredString(singlePatch.Filter2.Env.Release.ToString(), 20))));
 
             lines.Add(MakeTwoColumnRow("DCF Mod", "Time Mod Attack",
-                String.Format("{0}{1}",
+                string.Format("{0}{1}",
                     CenteredString(singlePatch.Filter1.TimeMod.AttackVelocity.ToString(), 20),
                     CenteredString(singlePatch.Filter2.TimeMod.AttackVelocity.ToString(), 20))));
 
             lines.Add(MakeTwoColumnRow("DCF Mod", "         Release",
-                String.Format("{0}{1}",
+                string.Format("{0}{1}",
                     CenteredString(singlePatch.Filter1.TimeMod.ReleaseVelocity.ToString(), 20),
                     CenteredString(singlePatch.Filter2.TimeMod.ReleaseVelocity.ToString(), 20))));
 
             lines.Add(MakeTwoColumnRow("DCF Mod", "         KS",
-                String.Format("{0}{1}",
+                string.Format("{0}{1}",
                     CenteredString(singlePatch.Filter1.TimeMod.KeyScaling.ToString(), 20),
                     CenteredString(singlePatch.Filter2.TimeMod.KeyScaling.ToString(), 20))));
 
             var sb = new StringBuilder();
             foreach (string line in lines)
             {
-                sb.Append(line);
-                sb.AppendLine();
+                sb.AppendLine(line);
             }
             return sb.ToString();
         }
@@ -332,7 +331,7 @@ namespace K4Tool
             lines.Add(MakeSingleColumnRow("Name", multiPatch.Name.ToString()));
 
             var space = " ";
-            lines.Add(String.Format("{0,-30}{1}{2}{3}{4}{5}{6}{7}{8}", space,
+            lines.Add(string.Format("{0,-30}{1}{2}{3}{4}{5}{6}{7}{8}", space,
                 CenteredString("1", 5), CenteredString("2", 5), CenteredString("3", 5), CenteredString("4", 5),
                 CenteredString("5", 5), CenteredString("6", 5), CenteredString("7", 5), CenteredString("8", 5)));
 
@@ -343,7 +342,7 @@ namespace K4Tool
             {
                 //Console.WriteLine($"Section single patch = {section.SinglePatch.Value}");
 
-                string number = PatchUtil.GetPatchName(section.SinglePatch - 1).Replace(" ", String.Empty);
+                string number = PatchUtil.GetPatchName(section.SinglePatch - 1).Replace(" ", string.Empty);
                 sectionValues.Append(CenteredString(number, 5));
 
                 if (!patchNames.ContainsKey(number))
@@ -430,16 +429,17 @@ namespace K4Tool
             foreach (string number in patchNames.Keys)
             {
                 string name = patchNames[number];
-                patchNamesLine.Append(String.Format($"{number} = {name}  "));
+                patchNamesLine.Append($"{number} = {name}  ");
             }
             lines.Add(patchNamesLine.ToString());
 
             var sb = new StringBuilder();
+
             foreach (string line in lines)
             {
-                sb.Append(line);
-                sb.AppendLine();
+                sb.AppendLine(line);
             }
+
             return sb.ToString();
         }
     }

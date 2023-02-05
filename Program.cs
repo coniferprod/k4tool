@@ -116,8 +116,8 @@ namespace K4Tool
                 var patchNumber = 0;
                 foreach (SinglePatch sp in bank.Singles)
                 {
-                    string patchId = PatchUtil.GetPatchName(patchNumber).Replace(" ", String.Empty);
-                    Console.WriteLine(String.Format($"SINGLE {patchId}"));
+                    string patchId = PatchUtil.GetPatchName(patchNumber).Replace(" ", string.Empty);
+                    Console.WriteLine($"SINGLE {patchId}");
                     Console.WriteLine(dump.MakeSinglePatchText(sp));
                     patchNumber++;
                 }
@@ -126,8 +126,8 @@ namespace K4Tool
                 Console.WriteLine("Multi patches:");
                 foreach (MultiPatch mp in bank.Multis)
                 {
-                    string patchId = PatchUtil.GetPatchName(patchNumber).Replace(" ", String.Empty);
-                    Console.WriteLine(String.Format($"MULTI {patchId}"));
+                    string patchId = PatchUtil.GetPatchName(patchNumber).Replace(" ", string.Empty);
+                    Console.WriteLine($"MULTI {patchId}");
                     Console.WriteLine(dump.MakeMultiPatchText(mp));
                     patchNumber++;
                 }
@@ -280,7 +280,7 @@ namespace K4Tool
             header.Group = 0x00; // synth group
             header.MachineID = 0x04; // K4/K4r
             header.Substatus1 = 0x00;  // INT
-            header.Substatus2 = (sbyte)patchNumber;
+            header.Substatus2 = (byte)patchNumber;
 
             var payload = new List<byte>();
             payload.AddRange(header.GetSystemExclusiveData());
