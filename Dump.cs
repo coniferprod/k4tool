@@ -64,7 +64,7 @@ namespace K4Tool
             lines.Add(MakeSingleColumnRow("Volume", singlePatch.Volume.ToString()));
             lines.Add(MakeSingleColumnRow("Effect", singlePatch.Effect.ToString()));
             lines.Add(MakeSingleColumnRow("Submix ch", singlePatch.Submix.ToString()));
-            lines.Add(MakeSingleColumnRow("Name", singlePatch.Name));
+            lines.Add(MakeSingleColumnRow("Name", singlePatch.Name.Value));
             lines.Add(MakeTwoColumnRow("Common", "Source Mode", singlePatch.SourceMode.ToString(), true));
 
             var amValue = new StringBuilder();
@@ -328,7 +328,7 @@ namespace K4Tool
 
             lines.Add(MakeSingleColumnRow("Volume", multiPatch.Volume.ToString()));
             lines.Add(MakeSingleColumnRow("Effect", multiPatch.EffectPatch.ToString()));
-            lines.Add(MakeSingleColumnRow("Name", multiPatch.Name.ToString()));
+            lines.Add(MakeSingleColumnRow("Name", multiPatch.Name.Value.ToString()));
 
             var space = " ";
             lines.Add(string.Format("{0,-30}{1}{2}{3}{4}{5}{6}{7}{8}", space,
@@ -342,12 +342,12 @@ namespace K4Tool
             {
                 //Console.WriteLine($"Section single patch = {section.SinglePatch.Value}");
 
-                string number = PatchUtil.GetPatchName(section.SinglePatch - 1).Replace(" ", string.Empty);
+                string number = PatchUtil.GetPatchName(section.SinglePatch.Value - 1).Replace(" ", string.Empty);
                 sectionValues.Append(CenteredString(number, 5));
 
                 if (!patchNames.ContainsKey(number))
                 {
-                    patchNames.Add(number, this.bank.Singles[section.SinglePatch - 1].Name);
+                    patchNames.Add(number, this.bank.Singles[section.SinglePatch.Value - 1].Name.Value);
                 }
             }
             lines.Add(MakeTwoColumnRow("Inst", "Single Number", sectionValues.ToString(), true));

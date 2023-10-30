@@ -6,12 +6,12 @@ using System.Xml;
 using System.Linq;
 
 using CommandLine;
+using Newtonsoft.Json;
 
+using SyxPack;
 using KSynthLib.Common;
 using KSynthLib.K4;
-using SyxPack;
 
-using Newtonsoft.Json;
 
 namespace K4Tool
 {
@@ -172,8 +172,8 @@ namespace K4Tool
             }
 
             // Create a System Exclusive header for an "All Patch Data Dump"
-            var header = new SystemExclusiveHeader(0);  // channel 1
-            header.Channel = 0;  // MIDI channel 1
+            var header = new SystemExclusiveHeader(1);  // channel 1
+            header.Channel = new Channel(1);  // MIDI channel 1
             header.Function = SystemExclusiveFunction.AllPatchDataDump;
             header.Group = 0;  // synthesizer group
             header.MachineID = 0x04;  // K4/K4r ID
@@ -181,13 +181,13 @@ namespace K4Tool
             header.Substatus2 = 0;  // always zero
 
             var data = new List<byte>();
-            data.AddRange(header.GetSystemExclusiveData());
+            data.AddRange(header.Data);
 
             var patchBytes = new List<byte>();
             // Single patches: 64 * 131 = 8384 bytes of data
             foreach (SinglePatch s in singlePatches)
             {
-                patchBytes.AddRange(s.GetSystemExclusiveData());
+                patchBytes.AddRange(s.Data);
             }
 
             // Multi patches: 64 * 77 = 4928 bytes of data
@@ -195,12 +195,12 @@ namespace K4Tool
             // multi patches are listed as 87, not 77 bytes
             foreach (MultiPatch m in multiPatches)
             {
-                patchBytes.AddRange(m.ToData());
+                patchBytes.AddRange(m.Data);
             }
 
             // Drums: 682 bytes of data
             DrumPatch drums = new DrumPatch();
-            patchBytes.AddRange(drums.ToData());
+            patchBytes.AddRange(drums.Data);
 
             var effectPatches = new List<EffectPatch>();
             for (var i = 0; i < Bank.EffectPatchCount; i++)
@@ -211,19 +211,18 @@ namespace K4Tool
             // Effect patches: 32 * 35 = 1120 bytes of data
             foreach (EffectPatch e in effectPatches)
             {
-                patchBytes.AddRange(e.ToData());
+                patchBytes.AddRange(e.Data);
             }
 
             var payload = new List<byte>();
-            payload.AddRange(header.GetSystemExclusiveData());
+            payload.AddRange(header.Data);
             payload.AddRange(patchBytes);
 
             // Create a new System Exclusive message
-            var message = new ManufacturerSpecificMessage
-            {
-                Manufacturer = ManufacturerDefinition.Find(new byte[] { 0x40 }),
-                Payload = payload
-            };
+            var message = new ManufacturerSpecificMessage(
+                new ManufacturerDefinition(new byte[] { 0x40 }),
+                payload.ToArray()
+            );
 
             // SysEx initiator:    1
             // SysEx header:       7
@@ -235,7 +234,7 @@ namespace K4Tool
             // Total bytes:    15123
 
             // Write the data to the output file
-            File.WriteAllBytes(opts.OutputFileName, message.ToData());
+            File.WriteAllBytes(opts.OutputFileName, message.Data.ToArray());
 
             return 0;
         }
@@ -254,14 +253,15 @@ namespace K4Tool
             var singlePatch = new SinglePatch();
 
             // Override the patch defaults
-            singlePatch.Name = opts.PatchName;
-            singlePatch.Volume = 100;
-            singlePatch.Effect = 1;
+            singlePatch.Name = new PatchName(opts.PatchName);
+            singlePatch.Volume = new Level(100);
+            singlePatch.Effect = new EffectNumber(1);
 
             byte[] data = GenerateSystemExclusiveMessage(singlePatch, PatchUtil.GetPatchNumber(opts.PatchNumber));
 
             Console.WriteLine("Generated single patch as a SysEx message:");
-            Console.WriteLine(Util.HexDump(data));
+            var hexDump = new HexDump(data);
+            Console.WriteLine(hexDump.ToString());
 
             // Write the data to the output file
             File.WriteAllBytes(opts.OutputFileName, data);
@@ -269,30 +269,26 @@ namespace K4Tool
             return 0;
         }
 
-        private static byte[] GenerateSystemExclusiveMessage(SinglePatch patch, int patchNumber, int channel = 0)
+        private static byte[] GenerateSystemExclusiveMessage(SinglePatch patch, int patchNumber, int channel = 1)
         {
-
             var data = new List<byte>();
 
             var header = new SystemExclusiveHeader((byte)channel);
-            header.Channel = (byte)channel;
+            header.Channel = new Channel(channel);
             header.Function = SystemExclusiveFunction.OnePatchDataDump;
-            header.Group = 0x00; // synth group
-            header.MachineID = 0x04; // K4/K4r
             header.Substatus1 = 0x00;  // INT
             header.Substatus2 = (byte)patchNumber;
 
             var payload = new List<byte>();
-            payload.AddRange(header.GetSystemExclusiveData());
-            payload.AddRange(patch.GetSystemExclusiveData());
+            payload.AddRange(header.Data);
+            payload.AddRange(patch.Data);
 
-            var message = new ManufacturerSpecificMessage
-            {
-                Manufacturer = ManufacturerDefinition.Find(new byte[] { 0x40 }),
-                Payload = payload
-            };
+            var message = new ManufacturerSpecificMessage(
+                new ManufacturerDefinition(new byte[] { 0x40 }),
+                payload.ToArray()
+            );
 
-            return message.ToData();
+            return message.Data.ToArray();
         }
 
         public static int RunExtractAndReturnExitCode(ExtractOptions opts)
@@ -909,7 +905,7 @@ namespace K4Tool
                 WriteTwoColumnParameter(writer, "Volume", sp.Volume.ToString());
                 WriteTwoColumnParameter(writer, "Effect Patch", sp.Effect.ToString());
                 WriteTwoColumnParameter(writer, "Submix Ch", sp.Submix.ToString());
-                WriteTwoColumnParameter(writer, "Name", sp.Name);
+                WriteTwoColumnParameter(writer, "Name", sp.Name.Value);
 
                 WriteThreeColumnParameter(writer, "Common", "Source Mode", sp.SourceMode.ToString());
                 WriteThreeColumnParameter(writer, "", "AM", string.Format($"{sp.AM12.ToString()}, {sp.AM34.ToString()}"));
@@ -1175,21 +1171,21 @@ namespace K4Tool
 
                 WriteMultiTwoColumnParameter(writer, "Volume", mp.Volume.ToString());
                 WriteMultiTwoColumnParameter(writer, "Effect Patch", mp.EffectPatch.ToString());
-                WriteMultiTwoColumnParameter(writer, "Name", mp.Name);
+                WriteMultiTwoColumnParameter(writer, "Name", mp.Name.Value);
 
                 WriteSectionHeadings(writer);
 
                 var values = new List<string>();
                 foreach (Section section in mp.Sections)
                 {
-                    values.Add(PatchUtil.GetPatchName(section.SinglePatch));
+                    values.Add(PatchUtil.GetPatchName(section.SinglePatch.Value));
                 }
                 WriteManyParameters(writer, "Inst", "Single No.", values);
 
                 values.Clear();
                 foreach (Section section in mp.Sections)
                 {
-                    values.Add(singlePatches[section.SinglePatch].Name);
+                    values.Add(singlePatches[section.SinglePatch.Value].Name.Value);
                 }
                 WriteManyParameters(writer, "", "Single Name", values);
 

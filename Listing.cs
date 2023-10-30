@@ -68,7 +68,7 @@ namespace K4Tool
                     patchNumber = groupNumber * PatchesPerGroup + rowNumber;
                     var singlePatch = singlePatches[patchNumber];
                     string patchLabel = PatchUtil.GetPatchName(patchNumber);
-                    sb.Append($"S{patchLabel}  {singlePatch.Name:10}  ");
+                    sb.Append($"S{patchLabel}  {singlePatch.Name.Value:10}  ");
                 }
                 sb.Append("\n");
             }
@@ -94,7 +94,7 @@ namespace K4Tool
                     patchNumber = groupNumber * PatchesPerGroup + rowNumber;
                     var multiPatch = multiPatches[patchNumber];
                     string patchLabel = PatchUtil.GetPatchName(patchNumber);
-                    sb.Append($"S{patchLabel}  {multiPatch.Name:10}  ");
+                    sb.Append($"S{patchLabel}  {multiPatch.Name.Value:10}  ");
                 }
                 sb.Append("\n");
             }

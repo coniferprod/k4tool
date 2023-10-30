@@ -4,7 +4,7 @@ Utility to work with Kawai K4 synthesizer patches.
 
 ## Installation
 
-You will need [.NET 7](https://dotnet.microsoft.com/en-us/download) or later from Microsoft to run this program. There is no binary distribution, so you'll need to build the program before you can run it.
+You will need [.NET 6](https://dotnet.microsoft.com/en-us/download) or later from Microsoft to run this program. There is no binary distribution, so you'll need to build the program before you can run it.
 
 Quick instructions for macOS:
 - Install .NET.
