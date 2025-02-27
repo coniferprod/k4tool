@@ -14,3 +14,8 @@ obj/
 .DS_Store
 
 errors.txt
+
+
+# Added by cargo
+
+/target

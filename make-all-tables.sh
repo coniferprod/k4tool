@@ -1,9 +1,0 @@
-dotnet run -- table --format docbook --patch all --input ~/tmp/K4/K4/A401.SYX --output ~/Projects/kawai-k4-companion/a401.xml
-#dotnet run -- table --format docbook --patch all --input ~/tmp/K4/K4/A402.SYX --output ~/Projects/kawai-k4-companion/a402.xml
-dotnet run -- table --format docbook --patch all --input ~/tmp/K4/K4/A403.SYX --output ~/Projects/kawai-k4-companion/a403.xml
-dotnet run -- table --format docbook --patch all --input ~/tmp/K4/K4/A404.SYX --output ~/Projects/kawai-k4-companion/a404.xml
-dotnet run -- table --format docbook --patch all --input ~/tmp/K4/K4/A405.SYX --output ~/Projects/kawai-k4-companion/a405.xml
-dotnet run -- table --format docbook --patch all --input ~/tmp/K4/K4/E401.SYX --output ~/Projects/kawai-k4-companion/e401.xml
-dotnet run -- table --format docbook --patch all --input ~/tmp/K4/K4/J401.SYX --output ~/Projects/kawai-k4-companion/j401.xml
-dotnet run -- table --format docbook --patch all --input ~/tmp/K4/K4/J402.SYX --output ~/Projects/kawai-k4-companion/j402.xml
-dotnet run -- table --format docbook --patch all --input ~/tmp/K4/K4/K4INT.SYX --output ~/Projects/kawai-k4-companion/k4int.xml
