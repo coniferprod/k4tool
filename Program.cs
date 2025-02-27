@@ -881,7 +881,7 @@ namespace K4Tool
                 writer.WriteValue("single patches");
                 writer.WriteEndElement(); // primary
                 writer.WriteStartElement("secondary");
-                writer.WriteValue(sp.Name);
+                writer.WriteValue(sp.Name.Value);
                 writer.WriteEndElement(); // secondary
                 writer.WriteEndElement();  // indexterm
 
@@ -1149,7 +1149,7 @@ namespace K4Tool
                 writer.WriteValue("multi patches");
                 writer.WriteEndElement(); // primary
                 writer.WriteStartElement("secondary");
-                writer.WriteValue(mp.Name);
+                writer.WriteValue(mp.Name.Value);
                 writer.WriteEndElement(); // secondary
                 writer.WriteEndElement();  // indexterm
 

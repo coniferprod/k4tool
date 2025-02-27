@@ -110,7 +110,7 @@ namespace K4Tool
         [Option('f', "format", Required = true, HelpText = "Output file format ('docbook' or 'html').")]
         public string Format { get; set; }
 
-        [Option('p', "patch", Required = true, HelpText = "Type of patch (all, single, multi, drum, effect.")]
+        [Option('p', "patch", Required = true, HelpText = "Type of patch (all, single, multi, drum, effect).")]
         public string PatchType { get; set; }
 
         [Option('i', "input", Required = true, HelpText = "Input file name.")]
