@@ -52,6 +52,17 @@ class Kind(Enum):
     EFFECT = 4
     ALL = 5
 
+HEADER_SIZE = 6 # length of header in bytes
+SINGLE_COUNT = 64
+MULTI_COUNT = 64
+EFFECT_COUNT = 32
+SINGLE_SIZE = 131
+MULTI_SIZE = 77
+EFFECT_SIZE = 35
+DRUM_SIZE = 682
+NAME_LENGTH = 10
+PATCHES_PER_BANK = 16
+
 class Header:
     def __init__(self, data: bytes):
         self.channel = data[0]
