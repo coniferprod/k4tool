@@ -21,3 +21,5 @@ errors.txt
 /target
 
 __pycache__/
+
+*.syx

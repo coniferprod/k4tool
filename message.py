@@ -67,8 +67,8 @@ class Header:
     def __init__(self, data: bytes):
         self.channel = data[0]
         self.function = data[1]
-        # data[2]: Group = 0x00
-        # data[3]: machine = 0x04
+        self.group = data[2]
+        self.machine = data[3]
         self.substatus1 = data[4]
         self.substatus2 = data[5]
 
@@ -114,3 +114,8 @@ class Header:
 
         return {'kind': kind, 'locality': locality, 'cardinality': cardinality,
                 'patch_number': patch_number}
+
+    def __bytes__(self):
+        result = [self.channel, self.function, self.group, self.machine,
+                  self.substatus1, self.substatus2]
+        return bytes(result)

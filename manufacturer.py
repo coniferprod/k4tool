@@ -33,9 +33,14 @@ class Manufacturer:
         s += ')'
         return s
 
+    def __bytes__(self) -> bytes:
+        return bytes(self.identifier)
+    
     @property
     def name(self) -> str:
         if self.identifier in MANUFACTURERS:
             return MANUFACTURERS[self.identifier]
         else:
             return '*unknown*'
+
+KAWAI = Manufacturer(bytes.fromhex("40"))
