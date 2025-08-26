@@ -160,7 +160,6 @@ def do_extract(bank_name, data, kind, patch_label):
 
     # Calculate offset from block start based on patch number
     start += number * size
-    payload = patch_data[start:start+size]
     out_name = bank_name + '_'
     out_name += 'S' if kind == 'single' else 'M'
     out_name += 'I' if header.locality == Locality.INTERNAL else 'E'
@@ -169,20 +168,17 @@ def do_extract(bank_name, data, kind, patch_label):
     #print(f'kind = {kind}. label = {patch_label} ({number})')
     #print(f'data = {len(payload)} bytes, name = "{out_name}"')
 
-    out_header = Header()  #create with defaults, then override as needed
-    out_header.channel = header.channel
-    out_header.function = Function.ONE_PATCH_DATA_DUMP
-    out_header.substatus1 = 0x00 if header.locality == Locality.INTERNAL else 0x02
-
+    out_header = Header(header.channel,
+                        Function.ONE_PATCH_DATA_DUMP,
+                        substatus1=0x00 if header.locality == Locality.INTERNAL else 0x02,
+                        substatus2=number if kind == 'single' else number + 64)
     # Sub status 2: 0~63 = SINGLE A-1 ~ D-16, 64~127 = MULTI A-1 ~ D-16
-    out_header.substatus2 = number if kind == 'single' else number + 64
 
-    out_data = bytearray()
-    out_data.append(0xf0)
-    out_data.extend(bytes(KAWAI))
-    out_data.extend(bytes(out_header))
-    out_data.extend(payload)
-    out_data.append(0xf7)
+    payload = bytearray()
+    payload.extend(bytes(out_header))
+    payload.extend(patch_data[start:start+size])
+
+    out_data = bytes(Message(KAWAI, payload))
 
     #print(f'Final output: {len(out_data)} bytes')
     try:

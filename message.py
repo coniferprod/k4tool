@@ -48,11 +48,11 @@ PATCHES_PER_BANK = 16
 
 class Header:
     def __init__(self, channel=0, function=Function.ALL_PATCH_DATA_DUMP,
-                 group=0x00, machine=0x04, substatus1=0x00, substatus2=0x00):
+                 substatus1=0x00, substatus2=0x00):
         self.channel = channel # MIDI channel 0~15
         self.function = function
-        self.group = group
-        self.machine = machine  # K4/K4r
+        self.group = 0x00
+        self.machine = 0x04  # K4/K4r
         self.substatus1 = substatus1 # INT
         self.substatus2 = substatus2
 
@@ -64,7 +64,7 @@ class Header:
         machine = data[3]
         substatus1 = data[4]
         substatus2 = data[5]
-        return cls(channel, function, group, machine, substatus1, substatus2)
+        return cls(channel, function, substatus1, substatus2)
 
     @property
     def locality(self):
@@ -110,7 +110,8 @@ class Header:
                 'patch_number': patch_number}
 
     def __bytes__(self):
-        result = [self.channel, self.function, self.group, self.machine,
+        result = [self.channel, self.function,
+                  self.group, self.machine,
                   self.substatus1, self.substatus2]
         return bytes(result)
 
@@ -140,3 +141,10 @@ class Message:
 
         return cls(manufacturer, payload)
     
+    def __bytes__(self):
+        result = bytearray()
+        result.append(INITIATOR)
+        result.extend(bytes(self.manufacturer))
+        result.extend(self.payload)
+        result.append(TERMINATOR)
+        return bytes(result)
