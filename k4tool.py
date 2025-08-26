@@ -1,10 +1,11 @@
-import sys
-import os
 import argparse
 import pathlib
 
 import waveform
-import message
+from message import (Message, Header, Kind, Cardinality, Locality, Function,
+                     HEADER_SIZE, SINGLE_SIZE, SINGLE_COUNT, 
+                     MULTI_SIZE, MULTI_COUNT, DRUM_SIZE, NAME_LENGTH,
+                     PATCHES_PER_BANK)
 from manufacturer import KAWAI
 
 def do_wave(number):
@@ -22,33 +23,33 @@ def do_wave(number):
             print(f'Bad wave number: {args.number}')
 
 def do_info(data):
-    msg = message.Message(data)
+    msg = Message.from_bytes(data)
     print(f'Manufacturer: {msg.manufacturer.name}')
 
     print(f'Payload: {len(msg.payload)} bytes')
-    header = message.Header(msg.payload)
+    header = Header.from_bytes(msg.payload)
     ident = header.identify()
     #print(ident)
 
     output = ''
     cardinality = ident['cardinality']
-    if cardinality == message.Cardinality.ONE:
+    if cardinality == Cardinality.ONE:
         output += 'One'
-    elif cardinality == message.Cardinality.BLOCK:
+    elif cardinality == Cardinality.BLOCK:
         output += 'Block'
     output += ' / '
     kind = ident['kind']
-    if kind == message.Kind.ALL:
+    if kind == Kind.ALL:
         output += 'All'
-    elif kind == message.Kind.SINGLE:
+    elif kind == Kind.SINGLE:
         output += 'Single'
-    elif kind == message.Kind.MULTI:
+    elif kind == Kind.MULTI:
         output += 'Multi'
     output += ' / '
     locality = ident['locality']
-    if locality == message.Locality.INTERNAL:
+    if locality == Locality.INTERNAL:
         output += 'INT'
-    elif locality == message.Locality.EXTERNAL:
+    elif locality == Locality.EXTERNAL:
         output += 'EXT'
     output += ' '
     number = ident['patch_number']
@@ -73,22 +74,22 @@ def patch_number(patch_label):
     return letter_index * 16 + number
 
 def do_list(data):
-    msg = message.Message(data)
-    header = message.Header(msg.payload)
+    msg = Message.from_bytes(data)
+    header = Header.from_bytes(msg.payload)
     ident = header.identify()
     cardinality = ident['cardinality']
-    if cardinality != message.Cardinality.BLOCK:
+    if cardinality != Cardinality.BLOCK:
         print('Not listing single patch')
         return
 
     # Patch data is between header at the start
     # and checksum + 0xF7 at the end
-    patch_data = msg.payload[message.HEADER_SIZE:-2]
+    patch_data = msg.payload[HEADER_SIZE:-2]
 
     single_start = 0
-    multi_start = message.SINGLE_COUNT * message.SINGLE_SIZE
-    drum_start = multi_start + message.MULTI_COUNT * message.MULTI_SIZE
-    effect_start = drum_start + message.DRUM_SIZE
+    multi_start = SINGLE_COUNT * SINGLE_SIZE
+    drum_start = multi_start + MULTI_COUNT * MULTI_SIZE
+    effect_start = drum_start + DRUM_SIZE
     #print(f'Singles = {single_start}')
     #print(f'Multis  = {multi_start}')
     #print(f'Drum    = {drum_start}')
@@ -96,30 +97,30 @@ def do_list(data):
 
     single_names = []
     offset = single_start
-    for _ in range(0, message.SINGLE_COUNT):
-        name_data = patch_data[offset : offset + message.NAME_LENGTH]
+    for _ in range(0, SINGLE_COUNT):
+        name_data = patch_data[offset : offset + NAME_LENGTH]
         name = name_data.decode('ASCII')
         #print(f'offset = {offset}')
         single_names.append(name)
-        offset += message.SINGLE_SIZE
+        offset += SINGLE_SIZE
 
     print('Single Patches'.upper())
 
     for (index, name) in enumerate(single_names):
-        print(f'{patch_label(index, message.PATCHES_PER_BANK)}: {name}')
+        print(f'{patch_label(index, PATCHES_PER_BANK)}: {name}')
 
     multi_names = []
-    for _ in range(0, message.MULTI_COUNT):
-        name_data = patch_data[offset : offset + message.NAME_LENGTH]
+    for _ in range(0, MULTI_COUNT):
+        name_data = patch_data[offset : offset + NAME_LENGTH]
         name = name_data.decode('ASCII')
         #print(f'offset = {offset}')
         multi_names.append(name)
-        offset += message.MULTI_SIZE
+        offset += MULTI_SIZE
 
     print()
     print('Multi Patches'.upper())
     for (index, name) in enumerate(multi_names):
-        print(f'{patch_label(index, message.PATCHES_PER_BANK)}: {name}')
+        print(f'{patch_label(index, PATCHES_PER_BANK)}: {name}')
 
 def do_extract(bank_name, data, kind, patch_label):
     # Get patch number from 0 .. 63 based on the label
@@ -132,21 +133,21 @@ def do_extract(bank_name, data, kind, patch_label):
         print(f'Invalid patch kind: {kind}')
         return
     
-    msg = message.Message(data)
-    header = message.Header(msg.payload)    
-    patch_data = msg.payload[message.HEADER_SIZE:-2]
+    msg = Message.from_bytes(data)
+    header = Header.from_bytes(msg.payload)    
+    patch_data = msg.payload[HEADER_SIZE:-2]
     start = 0
     size = 0
     single_start = 0
-    multi_start = message.SINGLE_COUNT * message.SINGLE_SIZE
-    drum_start = multi_start + message.MULTI_COUNT * message.MULTI_SIZE
-    effect_start = drum_start + message.DRUM_SIZE
+    multi_start = SINGLE_COUNT * SINGLE_SIZE
+    drum_start = multi_start + MULTI_COUNT * MULTI_SIZE
+    effect_start = drum_start + DRUM_SIZE
     if kind == 'single':
         start = single_start
-        size = message.SINGLE_SIZE
+        size = SINGLE_SIZE
     elif kind == 'multi':
         start = multi_start
-        size = message.MULTI_SIZE
+        size = MULTI_SIZE
     #elif kind == 'drum':
     #    start = drum_start
     #    size = message.DRUM_SIZE
@@ -162,16 +163,16 @@ def do_extract(bank_name, data, kind, patch_label):
     payload = patch_data[start:start+size]
     out_name = bank_name + '_'
     out_name += 'S' if kind == 'single' else 'M'
-    out_name += 'I' if header.locality == message.Locality.INTERNAL else 'E'
+    out_name += 'I' if header.locality == Locality.INTERNAL else 'E'
     out_name += f'{patch_label}.syx'
 
     #print(f'kind = {kind}. label = {patch_label} ({number})')
     #print(f'data = {len(payload)} bytes, name = "{out_name}"')
 
-    out_header = message.Header()  #create with defaults, then override as needed
+    out_header = Header()  #create with defaults, then override as needed
     out_header.channel = header.channel
-    out_header.function = message.Function.ONE_PATCH_DATA_DUMP
-    out_header.substatus1 = 0x00 if header.locality == message.Locality.INTERNAL else 0x02
+    out_header.function = Function.ONE_PATCH_DATA_DUMP
+    out_header.substatus1 = 0x00 if header.locality == Locality.INTERNAL else 0x02
 
     # Sub status 2: 0~63 = SINGLE A-1 ~ D-16, 64~127 = MULTI A-1 ~ D-16
     out_header.substatus2 = number if kind == 'single' else number + 64
@@ -190,7 +191,7 @@ def do_extract(bank_name, data, kind, patch_label):
     except (IOError, OSError):
         print('Error extracting patch')
 
-    print(out_data.hex(' '))
+    #print(out_data.hex(' '))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Kawai K4 sound patch utility')

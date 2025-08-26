@@ -1,26 +1,9 @@
 from enum import Enum, IntEnum
 
-from manufacturer import Manufacturer
+from manufacturer import Manufacturer, KAWAI
 
 INITIATOR = 0xf0
 TERMINATOR = 0xf7
-
-class Message:
-    def __init__(self, data: bytes):
-        if len(data) < 4:
-            raise ValueError('Not enough data for a valid MIDI System Exclusive message')
-        if data[0] != INITIATOR and data[-1] != TERMINATOR:
-            raise ValueError('Not a valid MIDI System Exclusive message')
-
-        if data[1] in [0x7e, 0x7f]:
-            raise ValueError('Universal System Exclusive messages are not supported')
-
-        if data[1] == 0x00:  # extended manufacturer
-            self.manufacturer = Manufacturer(data[1:4])
-            self.payload = data[4:-1]
-        else: # standard one-byte manufacturer
-            self.manufacturer = Manufacturer(data[1:2])
-            self.payload = data[2:-1]
 
 class Function(IntEnum):
     ONE_PATCH_DUMP_REQUEST = 0x00,
@@ -64,21 +47,24 @@ NAME_LENGTH = 10
 PATCHES_PER_BANK = 16
 
 class Header:
-    def __init__(self, data: bytes = None):
-        if data is None:
-            self.channel = 0 # MIDI channel 0~15
-            self.function = Function.ALL_PATCH_DATA_DUMP
-            self.group = 0x00
-            self.machine = 0x04  # K4/K4r
-            self.substatus1 = 0x00 # INT
-            self.substatus2 = 0x00
-        else:
-            self.channel = data[0]
-            self.function = data[1]
-            self.group = data[2]
-            self.machine = data[3]
-            self.substatus1 = data[4]
-            self.substatus2 = data[5]
+    def __init__(self, channel=0, function=Function.ALL_PATCH_DATA_DUMP,
+                 group=0x00, machine=0x04, substatus1=0x00, substatus2=0x00):
+        self.channel = channel # MIDI channel 0~15
+        self.function = function
+        self.group = group
+        self.machine = machine  # K4/K4r
+        self.substatus1 = substatus1 # INT
+        self.substatus2 = substatus2
+
+    @classmethod
+    def from_bytes(cls, data):
+        channel = data[0]
+        function = data[1]
+        group = data[2]
+        machine = data[3]
+        substatus1 = data[4]
+        substatus2 = data[5]
+        return cls(channel, function, group, machine, substatus1, substatus2)
 
     @property
     def locality(self):
@@ -127,3 +113,30 @@ class Header:
         result = [self.channel, self.function, self.group, self.machine,
                   self.substatus1, self.substatus2]
         return bytes(result)
+
+class Message:
+    def __init__(self, manufacturer=KAWAI, payload=bytes()):
+        self.manufacturer = manufacturer
+        self.payload = payload
+        
+    @classmethod
+    def from_bytes(cls, data):
+        if len(data) < 4:
+            raise ValueError('Not enough data for a valid MIDI System Exclusive message')
+        if data[0] != INITIATOR and data[-1] != TERMINATOR:
+            raise ValueError('Not a valid MIDI System Exclusive message')
+
+        if data[1] in [0x7e, 0x7f]:
+            raise ValueError('Universal System Exclusive messages are not supported')
+
+        manufacturer = None
+        payload = None
+        if data[1] == 0x00:  # extended manufacturer
+            manufacturer = Manufacturer(data[1:4])
+            payload = data[4:-1]
+        else: # standard one-byte manufacturer
+            manufacturer = Manufacturer(data[1:2])
+            payload = data[2:-1]
+
+        return cls(manufacturer, payload)
+    
