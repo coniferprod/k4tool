@@ -19,7 +19,7 @@ def do_wave(number):
         else:
             print(f'Bad wave number: {args.number}')
 
-def do_identify(data):
+def do_info(data):
     msg = message.Message(data)
     print(f'Manufacturer: {msg.manufacturer.name}')
 
@@ -118,8 +118,8 @@ if __name__ == '__main__':
     wave_parser = subparsers.add_parser('wave')
     wave_parser.add_argument("-n", "--number", type=int, default=None)
 
-    identify_parser = subparsers.add_parser('identify')
-    identify_parser.add_argument('filename', type=argparse.FileType('rb'))
+    info_parser = subparsers.add_parser('info')
+    info_parser.add_argument('filename', type=argparse.FileType('rb'))
 
     list_parser = subparsers.add_parser('list')
     list_parser.add_argument('filename', type=argparse.FileType('rb'))
@@ -128,7 +128,7 @@ if __name__ == '__main__':
 
     if args.command_name == 'wave':
         do_wave(args.number)
-    elif args.command_name == 'identify':
-        do_identify(args.filename.read())
+    elif args.command_name == 'info':
+        do_info(args.filename.read())
     elif args.command_name == 'list':
         do_list(args.filename.read())
