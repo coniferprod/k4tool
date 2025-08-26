@@ -64,13 +64,21 @@ NAME_LENGTH = 10
 PATCHES_PER_BANK = 16
 
 class Header:
-    def __init__(self, data: bytes):
-        self.channel = data[0]
-        self.function = data[1]
-        self.group = data[2]
-        self.machine = data[3]
-        self.substatus1 = data[4]
-        self.substatus2 = data[5]
+    def __init__(self, data: bytes = None):
+        if data is None:
+            self.channel = 0 # MIDI channel 0~15
+            self.function = Function.ALL_PATCH_DATA_DUMP
+            self.group = 0x00
+            self.machine = 0x04  # K4/K4r
+            self.substatus1 = 0x00 # INT
+            self.substatus2 = 0x00
+        else:
+            self.channel = data[0]
+            self.function = data[1]
+            self.group = data[2]
+            self.machine = data[3]
+            self.substatus1 = data[4]
+            self.substatus2 = data[5]
 
     @property
     def locality(self):

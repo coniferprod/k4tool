@@ -168,12 +168,10 @@ def do_extract(bank_name, data, kind, patch_label):
     #print(f'kind = {kind}. label = {patch_label} ({number})')
     #print(f'data = {len(payload)} bytes, name = "{out_name}"')
 
-    out_header = message.Header(bytes(message.HEADER_SIZE))
+    out_header = message.Header()  #create with defaults, then override as needed
     out_header.channel = header.channel
     out_header.function = message.Function.ONE_PATCH_DATA_DUMP
-    out_header.group = 0x00
-    out_header.machine = 0x04
-    out_header.substatus1 = 0x01 # internal
+    out_header.substatus1 = 0x00 if header.locality == message.Locality.INTERNAL else 0x02
 
     # Sub status 2: 0~63 = SINGLE A-1 ~ D-16, 64~127 = MULTI A-1 ~ D-16
     out_header.substatus2 = number if kind == 'single' else number + 64
@@ -191,6 +189,8 @@ def do_extract(bank_name, data, kind, patch_label):
             out_file.write(out_data)
     except (IOError, OSError):
         print('Error extracting patch')
+
+    print(out_data.hex(' '))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Kawai K4 sound patch utility')
