@@ -17,8 +17,8 @@ def do_wave(number):
             print(f'{key:3} {waveform.all_waveforms[key]}')
     else:
         # Show just the wave with the specified number
-        if args.number in waveform.all_waveforms.keys():
-            print(f'{args.number:3} {waveform.all_waveforms[args.number]}')
+        if 1 <= args.number < len(waveform.all_waveforms):
+            print(f'{waveform.all_waveforms[args.number]}')
         else:
             print(f'Bad wave number: {args.number}')
 
