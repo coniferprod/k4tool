@@ -189,6 +189,42 @@ def do_extract(bank_name, data, kind, patch_label):
 
     #print(out_data.hex(' '))
 
+def do_init(kind, patch_label):
+    # Get patch number from 0 .. 63 based on the label
+    number = patch_number(patch_label)
+    if number is None:
+        print(f'Invalid patch number: "{patch_label}"')
+        return
+    
+    if not kind in ['single', 'multi', 'drum', 'effect']:
+        print(f'Invalid patch kind: {kind}')
+        return
+    
+    locality = Locality.INTERNAL
+    out_header = Header(0,  # use MIDI channel 1
+                    Function.ONE_PATCH_DATA_DUMP,
+                    substatus1=0x00 if locality == Locality.INTERNAL else 0x02,
+                    substatus2=number if kind == 'single' else number + 64)
+    payload = bytearray()
+    payload.extend(bytes(out_header))
+
+    size = SINGLE_SIZE if kind == 'single' else MULTI_SIZE
+
+    payload.extend(bytes(size)) # just the right amount of zero bytes for now
+
+    out_data = bytes(Message(KAWAI, payload))
+
+    out_name = 'INIT'
+    out_name += 'S' if kind == 'single' else 'M'
+    out_name += 'I' if locality == Locality.INTERNAL else 'E'
+    out_name += f'{patch_label}.syx'.upper()
+    try:
+        with open(out_name, 'wb') as out_file:
+            out_file.write(out_data)
+    except (IOError, OSError):
+        print('Error writing init patch')
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Kawai K4 sound patch utility')
     subparsers = parser.add_subparsers(dest='command_name')
@@ -204,8 +240,12 @@ if __name__ == '__main__':
 
     extract_parser = subparsers.add_parser('extract')
     extract_parser.add_argument('filename', type=argparse.FileType('rb'))
-    extract_parser.add_argument("-n", "--number", type=str, default='a1')
     extract_parser.add_argument("-k", "--kind", type=str, default='single')
+    extract_parser.add_argument("-n", "--number", type=str, default='a1')
+
+    init_parser = subparsers.add_parser('init')
+    init_parser.add_argument("-k", "--kind", type=str, default='single')
+    init_parser.add_argument("-n", "--number", type=str, default='a1')
 
     args = parser.parse_args()
 
@@ -219,3 +259,5 @@ if __name__ == '__main__':
         # Get the name of the bank file without extension:
         bank_name = pathlib.Path(args.filename.name).stem
         do_extract(bank_name, args.filename.read(), args.kind, args.number)
+    elif args.command_name == 'init':
+        do_init(args.kind, args.number)
